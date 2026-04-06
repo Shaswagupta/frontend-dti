@@ -3,7 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { Login } from './components/Login';
+import { ProtectedRoute } from './components/ProtectedRoute';
+import { OrganizerDashboard } from './components/OrganizerDashboard';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Menu, 
@@ -33,7 +37,8 @@ import {
   CreditCard,
   LineChart,
   X,
-  ChevronDown
+  ChevronDown,
+  Loader2
 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { Screen, Event } from './types';
@@ -46,12 +51,16 @@ const TopAppBar = ({
   title = "Skillsurfer", 
   showBack = false, 
   onBack,
-  onMenuClick 
+  onMenuClick,
+  currentScreen,
+  onScreenChange 
 }: { 
   title?: string; 
   showBack?: boolean; 
   onBack?: () => void;
   onMenuClick?: () => void;
+  currentScreen?: Screen;
+  onScreenChange?: (screen: Screen) => void;
 }) => (
   <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-background/60 backdrop-blur-md border-b border-white/5">
     <div className="flex items-center gap-4">
@@ -71,10 +80,18 @@ const TopAppBar = ({
     </div>
     <div className="flex items-center gap-6">
       <nav className="hidden md:flex items-center gap-8 font-headline font-bold tracking-tight">
-        <a href="#" className="text-white hover:text-primary transition-colors">Home</a>
-        <a href="#" className="text-white hover:text-primary transition-colors">Explore</a>
-        <a href="#" className="text-primary">Events</a>
-        <a href="#" className="text-white hover:text-primary transition-colors">Stats</a>
+        {['home', 'explore', 'events', 'stats'].map(screen => (
+          <button 
+            key={screen}
+            onClick={() => onScreenChange && onScreenChange(screen as Screen)}
+            className={cn(
+              "capitalize transition-colors hover:text-primary",
+              currentScreen === screen ? "text-primary" : "text-white"
+            )}
+          >
+            {screen}
+          </button>
+        ))}
       </nav>
       <div className="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden">
         <img 
@@ -129,6 +146,17 @@ const BottomNavBar = ({
 
 const EventsFeed = ({ onEventClick }: { onEventClick: (event: Event) => void }) => {
   const [activeSport, setActiveSport] = useState('All Sports');
+  const [visibleCount, setVisibleCount] = useState(3);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const handleLoadMore = () => {
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setVisibleCount(prev => prev + 3);
+      setIsLoadingMore(false);
+    }, 800);
+  };
+
   const sports = ['All Sports', 'Basketball', 'Soccer', 'Tennis'];
 
   return (
@@ -167,7 +195,7 @@ const EventsFeed = ({ onEventClick }: { onEventClick: (event: Event) => void }) 
       </section>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {EVENTS.filter(e => activeSport === 'All Sports' || e.sport === activeSport).map((event) => (
+        {EVENTS.filter(e => activeSport === 'All Sports' || e.sport === activeSport).slice(0, visibleCount).map((event) => (
           <motion.div 
             key={event.id}
             layoutId={`event-${event.id}`}
@@ -221,16 +249,193 @@ const EventsFeed = ({ onEventClick }: { onEventClick: (event: Event) => void }) 
       </div>
 
       <div className="mt-16 flex justify-center">
-        <button className="flex items-center gap-2 px-8 py-4 bg-surface-container-highest text-white rounded-lg border border-outline-variant/20 font-headline font-bold hover:bg-surface-bright transition-all group">
-          LOAD MORE CHALLENGES
-          <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
-        </button>
+        {visibleCount < EVENTS.filter(e => activeSport === 'All Sports' || e.sport === activeSport).length ? (
+          <button 
+            onClick={handleLoadMore}
+            className="flex items-center gap-2 px-8 py-4 bg-surface-container-highest text-white rounded-lg border border-outline-variant/20 font-headline font-bold hover:bg-surface-bright transition-all group"
+          >
+            {isLoadingMore ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                LOADING...
+              </>
+            ) : (
+              <>
+                LOAD MORE CHALLENGES
+                <ChevronDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
+              </>
+            )}
+          </button>
+        ) : (
+          <p className="text-on-surface-variant text-sm font-bold uppercase tracking-widest">No more challenges</p>
+        )}
       </div>
     </div>
   );
 };
 
+const RegistrationModal = ({ 
+  isOpen, 
+  onClose, 
+  eventName, 
+  onRegister 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  eventName: string; 
+  onRegister: () => void;
+}) => {
+  const [teamName, setTeamName] = useState('');
+  const [captainName, setCaptainName] = useState('');
+  const [captainEmail, setCaptainEmail] = useState('');
+  const [members, setMembers] = useState([{ name: '', email: '' }]);
+
+  const addMember = () => {
+    setMembers([...members, { name: '', email: '' }]);
+  };
+
+  const updateMember = (index: number, field: 'name' | 'email', value: string) => {
+    const newMembers = [...members];
+    newMembers[index][field] = value;
+    setMembers(newMembers);
+  };
+
+  const removeMember = (index: number) => {
+    const newMembers = [...members];
+    newMembers.splice(index, 1);
+    setMembers(newMembers);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onRegister();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose}></div>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-surface-container-low border border-outline-variant/30 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col"
+      >
+        <div className="sticky top-0 z-10 flex justify-between items-center p-6 border-b border-outline-variant/20 bg-surface-container-low/95 backdrop-blur">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-primary font-label">Team Registration</span>
+            <h3 className="text-2xl font-black font-headline uppercase leading-tight italic">{eventName}</h3>
+          </div>
+          <button type="button" onClick={onClose} className="p-2 bg-surface-container-highest rounded-full hover:bg-surface-bright transition-colors">
+             <X className="w-5 h-5 text-on-surface" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 space-y-8">
+          {/* Team Info */}
+          <section className="space-y-4">
+            <h4 className="text-sm font-bold uppercase text-secondary tracking-widest font-label border-l-2 border-secondary pl-3">1. Team Details</h4>
+            <div className="space-y-2">
+               <label className="text-xs uppercase font-label">Team Name</label>
+               <input 
+                 required
+                 type="text" 
+                 value={teamName}
+                 onChange={e => setTeamName(e.target.value)}
+                 className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-lg p-3 text-white focus:outline-none focus:border-primary"
+                 placeholder="e.g. Neon Strikers"
+               />
+            </div>
+          </section>
+
+          {/* Captain Info */}
+          <section className="space-y-4">
+            <h4 className="text-sm font-bold uppercase text-tertiary tracking-widest font-label border-l-2 border-tertiary pl-3">2. Captain Details</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                 <label className="text-xs uppercase font-label">Captain Name</label>
+                 <input 
+                   required
+                   type="text" 
+                   value={captainName}
+                   onChange={e => setCaptainName(e.target.value)}
+                   className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-lg p-3 text-white focus:outline-none focus:border-primary"
+                   placeholder="Your Name"
+                 />
+              </div>
+              <div className="space-y-2">
+                 <label className="text-xs uppercase font-label">Email</label>
+                 <input 
+                   required
+                   type="email" 
+                   value={captainEmail}
+                   onChange={e => setCaptainEmail(e.target.value)}
+                   className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-lg p-3 text-white focus:outline-none focus:border-primary"
+                   placeholder="captain@example.com"
+                 />
+              </div>
+            </div>
+          </section>
+
+          {/* Team Members */}
+          <section className="space-y-4">
+            <h4 className="text-sm font-bold uppercase text-primary tracking-widest font-label border-l-2 border-primary pl-3">3. Team Roster</h4>
+            {members.map((member, idx) => (
+              <div key={idx} className="relative grid grid-cols-1 md:grid-cols-2 gap-4 p-4 border border-outline-variant/10 rounded-xl bg-surface-container">
+                 <div className="space-y-2">
+                   <label className="text-[10px] uppercase font-label text-on-surface-variant">Player {idx + 1} Name</label>
+                   <input 
+                     required
+                     type="text" 
+                     value={member.name}
+                     onChange={e => updateMember(idx, 'name', e.target.value)}
+                     className="w-full bg-surface-container-highest border focus:border-primary border-transparent rounded p-2 text-sm"
+                     placeholder="Name"
+                   />
+                 </div>
+                 <div className="space-y-2">
+                   <label className="text-[10px] uppercase font-label text-on-surface-variant">Player {idx + 1} Email</label>
+                   <div className="flex gap-2">
+                     <input 
+                       required
+                       type="email" 
+                       value={member.email}
+                       onChange={e => updateMember(idx, 'email', e.target.value)}
+                       className="w-full bg-surface-container-highest border focus:border-primary border-transparent rounded p-2 text-sm"
+                       placeholder="Email"
+                     />
+                     <button type="button" onClick={() => removeMember(idx)} className="p-2 text-error hover:bg-error/10 rounded border border-error/20">
+                       <X className="w-5 h-5" />
+                     </button>
+                   </div>
+                 </div>
+              </div>
+            ))}
+            <button 
+              type="button" 
+              onClick={addMember}
+              className="w-full py-3 border border-dashed border-outline-variant/30 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:text-primary hover:border-primary/50 transition-colors flex items-center justify-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Add Player
+            </button>
+          </section>
+
+          <div className="pt-4 border-t border-outline-variant/20">
+             <button type="submit" className="w-full kinetic-gradient py-4 rounded-xl text-on-primary-container font-headline font-black uppercase italic tracking-wider text-xl hover:shadow-[0_0_30px_rgba(202,253,0,0.3)] transition-all active:scale-95">
+               Confirm Registration
+             </button>
+          </div>
+        </form>
+      </motion.div>
+    </div>
+  );
+};
+
 const EventDetails = ({ event, onBack }: { event: Event; onBack: () => void }) => {
+  const [hasJoined, setHasJoined] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div className="pb-32">
       <section className="relative w-full h-[442px] flex items-end">
@@ -267,8 +472,17 @@ const EventDetails = ({ event, onBack }: { event: Event; onBack: () => void }) =
           <p className="text-[10px] uppercase tracking-widest text-secondary font-bold">Entry Fee</p>
           <p className="text-xl font-bold font-headline text-white">{event.entryFee}</p>
         </div>
-        <button className="kinetic-gradient text-on-primary-container px-8 py-3 rounded-md font-bold uppercase tracking-tighter text-sm active:scale-95 transition-transform">
-          Join Tournament
+        <button 
+          onClick={() => {
+            if (!hasJoined) setIsModalOpen(true);
+          }}
+          disabled={hasJoined}
+          className={cn(
+            "px-8 py-3 rounded-md font-bold uppercase tracking-tighter text-sm active:scale-95 transition-all text-on-primary-container",
+            hasJoined ? "bg-surface-container-highest text-primary border border-primary/30" : "kinetic-gradient"
+          )}
+        >
+          {hasJoined ? 'Registered ✓' : 'Join Tournament'}
         </button>
       </div>
 
@@ -357,11 +571,25 @@ const EventDetails = ({ event, onBack }: { event: Event; onBack: () => void }) =
           </div>
         </section>
       </div>
+      <AnimatePresence>
+        {isModalOpen && (
+          <RegistrationModal 
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            eventName={event.title}
+            onRegister={() => {
+               setIsModalOpen(false);
+               setHasJoined(true);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-const Profile = () => {
+const Profile = ({ onNavigate }: { onNavigate: (s: Screen) => void }) => {
+  const [showAwards, setShowAwards] = useState(false);
   const weeklyData = [
     { day: 'Mon', intensity: 30 },
     { day: 'Tue', intensity: 45 },
@@ -423,7 +651,13 @@ const Profile = () => {
               </div>
             </div>
           </div>
-          <button className="mt-6 w-full py-3 bg-surface-container-high rounded-md text-xs font-bold uppercase tracking-widest hover:bg-surface-bright transition-colors">View All Awards</button>
+          <button 
+            onClick={() => setShowAwards(true)}
+            disabled={showAwards}
+            className="mt-6 w-full py-3 bg-surface-container-high rounded-md text-xs font-bold uppercase tracking-widest hover:bg-surface-bright transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {showAwards ? 'ALL 12 AWARDS SYNCED ✓' : 'View All Awards'}
+          </button>
         </div>
       </section>
 
@@ -431,7 +665,7 @@ const Profile = () => {
         <div className="md:col-span-7 bg-surface-container-low rounded-xl p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-headline font-black text-2xl uppercase italic tracking-tight">Registered Tournaments</h3>
-            <span className="text-xs font-bold uppercase text-primary tracking-widest cursor-pointer hover:underline">See Schedule</span>
+            <span onClick={() => onNavigate('explore')} className="text-xs font-bold uppercase text-primary tracking-widest cursor-pointer hover:underline">See Schedule</span>
           </div>
           <div className="space-y-4">
             {EVENTS.slice(0, 2).map((event, idx) => (
@@ -538,206 +772,238 @@ const Profile = () => {
   );
 };
 
-const DirectorDashboard = () => {
-  const stats = [
-    { label: 'Active Tournaments', value: '12', change: '+2', icon: Trophy, color: 'text-primary' },
-    { label: 'Total Athletes', value: '842', change: 'PRO', icon: Users, color: 'text-secondary' },
-    { label: 'Registrations', value: '2.4k', change: 'UP', icon: Calendar, color: 'text-tertiary' },
-  ];
+// Organizer Dashboard has been decoupled to src/components/OrganizerDashboard.tsx;
 
+const HomeScreen = ({ onEventClick, onNavigate }: { onEventClick: (e: Event) => void, onNavigate: (s: Screen) => void }) => {
+  const featured = EVENTS[3] || EVENTS[0];
+  const upcoming = EVENTS.filter(e => e.status === 'upcoming').slice(0, 3);
   return (
-    <div className="pt-24 pb-32 px-6 max-w-7xl mx-auto">
-      <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-        <div>
-          <span className="text-secondary font-label text-xs uppercase tracking-[0.2em] font-bold">DIRECTOR PANEL</span>
-          <h2 className="text-4xl md:text-6xl font-headline font-bold text-on-surface mt-2 tracking-tighter">Performance Hub.</h2>
+    <div className="pt-24 pb-32 px-6 max-w-7xl mx-auto space-y-12">
+      <section>
+        <h2 className="text-3xl font-black font-headline uppercase italic mb-6">Featured Match</h2>
+        <div onClick={() => onEventClick(featured)} className="relative lg:h-[400px] h-80 rounded-2xl overflow-hidden cursor-pointer group">
+          <img src={featured.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={featured.title} />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
+          <div className="absolute bottom-6 left-6">
+             <span className="bg-primary text-on-primary px-3 py-1 rounded text-xs font-bold uppercase mb-2 inline-block">Trending</span>
+             <h3 className="text-4xl md:text-6xl font-black text-white font-headline uppercase italic">{featured.title}</h3>
+          </div>
         </div>
-        <button className="kinetic-gradient text-on-primary-container px-6 py-4 rounded-md font-bold flex items-center gap-2 hover:scale-95 active:duration-150 transition-all shadow-[0_4px_20px_rgba(202,253,0,0.2)]">
-          <Plus className="w-6 h-6" />
-          CREATE TOURNAMENT
-        </button>
       </section>
+      <section>
+         <div className="flex justify-between items-end mb-6">
+           <h2 className="text-2xl font-black font-headline uppercase italic">Hot Upcoming</h2>
+           <button onClick={() => onNavigate('events')} className="text-primary font-bold hover:underline uppercase text-sm font-label tracking-widest">View All</button>
+         </div>
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+           {upcoming.map(e => (
+             <div onClick={() => onEventClick(e)} key={e.id} className="bg-surface-container-low rounded-xl p-4 cursor-pointer hover:bg-surface-container-high transition-colors">
+               <div className="relative h-40 rounded-lg overflow-hidden mb-4">
+                 <img src={e.image} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+               </div>
+               <h4 className="font-bold text-xl font-headline tracking-tight uppercase line-clamp-1">{e.title}</h4>
+               <p className="text-on-surface-variant text-sm flex items-center gap-2 mt-2 font-label">
+                 <CalendarDays className="w-4 h-4"/> {e.date}
+               </p>
+             </div>
+           ))}
+         </div>
+      </section>
+    </div>
+  );
+};
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        {stats.map((stat, idx) => (
-          <div key={stat.label} className={cn(
-            "bg-surface-container-low p-8 rounded-xl relative overflow-hidden group",
-            idx === 1 && "border-l-4 border-secondary"
-          )}>
-            <div className="relative z-10">
-              <p className="text-on-surface-variant font-label text-sm uppercase tracking-widest mb-4">{stat.label}</p>
-              <div className="flex items-baseline gap-2">
-                <span className={cn("text-6xl font-headline font-black", stat.color)}>{stat.value}</span>
-                <span className={cn("font-headline font-bold text-xl opacity-60", stat.color)}>{stat.change}</span>
-              </div>
+const Explore = ({ onEventClick }: { onEventClick: (e: Event) => void }) => {
+  const [query, setQuery] = useState('');
+  const filtered = EVENTS.filter(e => e.title.toLowerCase().includes(query.toLowerCase()) || e.sport.toLowerCase().includes(query.toLowerCase()));
+  return (
+    <div className="pt-24 pb-32 px-6 max-w-7xl mx-auto space-y-8">
+      <div className="relative max-w-2xl mx-auto">
+        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-on-surface-variant" />
+        <input 
+          type="text" 
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search events, sports, locations..." 
+          className="w-full shadow-lg bg-surface-container-lowest border border-outline-variant/30 rounded-full py-5 pl-16 pr-6 focus:outline-none focus:border-primary text-white font-headline text-lg"
+        />
+      </div>
+      <div className="flex justify-center gap-3 flex-wrap">
+        {['All', 'Basketball', 'Soccer', 'Tennis', 'Aquatics'].map(filter => (
+           <button key={filter} className="bg-surface-container-highest px-4 py-2 rounded-full text-xs font-bold font-label uppercase tracking-widest hover:bg-primary hover:text-on-primary transition-colors">
+             {filter}
+           </button>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
+        {filtered.map(e => (
+          <div onClick={() => onEventClick(e)} key={e.id} className="relative h-64 rounded-xl overflow-hidden cursor-pointer group shadow-xl">
+            <img src={e.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent transition-colors"></div>
+            <div className="absolute inset-0 p-6 flex flex-col justify-end">
+              <span className="text-xs uppercase text-primary font-bold tracking-widest mb-2 inline-block">{e.sport}</span>
+              <h4 className="font-black text-white text-2xl font-headline tracking-tighter uppercase leading-none">{e.title}</h4>
             </div>
-            <stat.icon className="absolute -right-4 -bottom-4 w-32 h-32 opacity-5 group-hover:opacity-10 transition-opacity" />
+            {e.status === 'live' && (
+               <div className="absolute top-4 right-4 bg-error-container text-white px-2 py-0.5 rounded text-[10px] font-bold">
+                 LIVE
+               </div>
+            )}
           </div>
         ))}
-      </section>
+      </div>
+    </div>
+  );
+};
 
-      <section className="mb-12">
-        <div className="flex items-center justify-between mb-8">
-          <h3 className="text-2xl font-headline font-bold tracking-tight flex items-center gap-3">
-            <span className="w-8 h-[2px] bg-primary"></span>
-            Managed Events
-          </h3>
-          <div className="flex gap-2">
-            <button className="bg-secondary text-on-secondary px-4 py-1.5 rounded-full text-xs font-bold font-label uppercase tracking-wider">All</button>
-            <button className="bg-surface-container-high text-on-surface-variant px-4 py-1.5 rounded-full text-xs font-bold font-label uppercase tracking-wider hover:bg-surface-container-highest transition-colors">Live</button>
-            <button className="bg-surface-container-high text-on-surface-variant px-4 py-1.5 rounded-full text-xs font-bold font-label uppercase tracking-wider hover:bg-surface-container-highest transition-colors">Finished</button>
-          </div>
-        </div>
-        <div className="space-y-4">
-          {EVENTS.slice(3, 6).map((event, idx) => (
-            <div key={event.id} className="bg-surface-container-low hover:bg-surface-container-highest transition-all p-6 rounded-xl group flex flex-col md:flex-row items-center gap-6">
-              <div className="w-full md:w-48 h-32 rounded-lg overflow-hidden shrink-0">
-                <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" src={event.image} />
-              </div>
-              <div className="flex-grow">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className={cn(
-                    "px-2 py-0.5 rounded text-[10px] font-bold font-label uppercase",
-                    idx === 0 ? "bg-error-container text-white animate-pulse" : "bg-surface-container-highest text-on-surface-variant"
-                  )}>
-                    {idx === 0 ? 'LIVE NOW' : idx === 1 ? 'Starts in 3 Days' : 'Finished'}
-                  </span>
-                  <span className="text-on-surface-variant text-xs font-label uppercase">{event.location}</span>
-                </div>
-                <h4 className="text-xl font-headline font-bold text-on-surface mb-1">{event.title}</h4>
-                <p className="text-on-surface-variant text-sm line-clamp-1">Elite competition featuring top global pros.</p>
-              </div>
-              <div className="flex md:flex-col items-center md:items-end justify-between w-full md:w-auto gap-4">
-                <div className="text-right">
-                  <p className="text-[10px] text-on-surface-variant uppercase tracking-widest font-bold">
-                    {idx === 2 ? 'Winner' : 'Prize Pool'}
-                  </p>
-                  <p className="text-primary font-headline font-bold text-lg">
-                    {idx === 2 ? 'J. Thorne' : event.prizePool || '$50,000'}
-                  </p>
-                </div>
-                <button className="bg-surface-container-highest border border-outline-variant px-4 py-2 rounded-md text-xs font-bold flex items-center gap-2 hover:bg-primary hover:text-on-primary transition-colors">
-                  {idx === 0 ? 'MANAGE' : idx === 1 ? 'EDIT SETUP' : 'REPORTS'}
-                  <ArrowLeft className="w-4 h-4 rotate-180" />
-                </button>
-              </div>
+const Stats = () => {
+  const chartData = [
+     { name: 'Week 1', points: 400 },
+     { name: 'Week 2', points: 300 },
+     { name: 'Week 3', points: 550 },
+     { name: 'Week 4', points: 800 },
+  ];
+  return (
+    <div className="pt-24 pb-32 px-6 max-w-7xl mx-auto space-y-8">
+       <h2 className="text-4xl md:text-6xl font-black font-headline tracking-tighter uppercase italic">Global Rankings</h2>
+       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+         <div className="bg-surface-container-low p-8 rounded-xl relative overflow-hidden">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-primary mb-8 font-label relative z-10">Top Athletes</h3>
+            <div className="space-y-4 relative z-10">
+              {[ {n: 'Alex Sterling', p: 1200}, {n: 'Marcus Vane', p: 980}, {n: 'Sarah Chen', p: 850} ].map((u, i) => (
+                 <div key={u.n} className="flex justify-between items-center p-4 bg-surface-container-highest border border-outline-variant/10 rounded-xl hover:border-primary/50 transition-colors">
+                   <div className="flex items-center gap-5">
+                      <span className={cn(
+                        "text-3xl font-black italic", 
+                        i === 0 ? "text-primary" : i === 1 ? "text-secondary" : "text-tertiary"
+                      )}>{i+1}</span>
+                      <span className="font-bold font-headline text-lg uppercase tracking-tight">{u.n}</span>
+                   </div>
+                   <span className="text-white font-headline font-black text-xl">{u.p} <span className="text-sm text-on-surface-variant font-medium">pts</span></span>
+                 </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-surface-container-low p-8 rounded-xl">
-          <h3 className="text-xl font-headline font-bold mb-6">Recent Registrations</h3>
-          <div className="space-y-6">
-            {[
-              { name: 'Marcus Vane', action: 'Joined Pacific Peak', time: '2m ago', color: 'text-secondary' },
-              { name: 'Sarah Sterling', action: 'Joined Neon Sprint', time: '15m ago', color: 'text-primary' },
-              { name: 'Alex Chen', action: 'Joined Iron Grip', time: '1h ago', color: 'text-tertiary' },
-            ].map(reg => (
-              <div key={reg.name} className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center font-bold text-primary overflow-hidden">
-                  <User className="w-6 h-6" />
-                </div>
-                <div className="flex-grow">
-                  <h5 className="text-sm font-bold text-on-surface">{reg.name}</h5>
-                  <p className="text-xs text-on-surface-variant">{reg.action}</p>
-                </div>
-                <span className="text-[10px] text-on-surface-variant font-label uppercase">{reg.time}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="bg-surface-container-low p-8 rounded-xl border border-primary/20">
-          <h3 className="text-xl font-headline font-bold mb-6">Quick Actions</h3>
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { label: 'Broadcast', icon: Bell, color: 'text-primary' },
-              { label: 'Payouts', icon: CreditCard, color: 'text-secondary' },
-              { label: 'Analytics', icon: LineChart, color: 'text-tertiary' },
-              { label: 'Config', icon: Settings, color: 'text-white' },
-            ].map(action => (
-              <button key={action.label} className="flex flex-col items-center justify-center gap-3 p-6 bg-surface-container-highest rounded-lg hover:bg-surface-bright transition-colors group">
-                <action.icon className={cn("w-8 h-8 group-hover:scale-110 transition-transform", action.color)} />
-                <span className="text-[10px] font-bold font-label tracking-widest text-on-surface uppercase">{action.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
+            <Trophy className="absolute -right-10 -bottom-10 w-64 h-64 opacity-5 text-primary" />
+         </div>
+         <div className="bg-surface-container-low p-8 rounded-xl flex flex-col">
+            <h3 className="text-sm font-bold uppercase tracking-widest text-secondary mb-8 font-label">Platform Engagement</h3>
+            <div className="h-64 flex-grow w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <Bar dataKey="points" fill="#00eefc" radius={[4,4,0,0]} />
+                  <XAxis dataKey="name" stroke="#adaaaa" tickLine={false} axisLine={false} tick={{fill: '#adaaaa', fontSize: 10, fontWeight: 'bold'}} />
+                  <Tooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{backgroundColor: '#1E1E1E', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px'}}/>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+         </div>
+       </div>
     </div>
   );
 };
 
 // --- Main App ---
 
-export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<Screen>('events');
+function AppLayout({ userRole }: { userRole: 'student' | 'organizer' }) {
+  const navigate = useNavigate();
+  const { screen } = useParams();
+  
+  const fallbackScreen = userRole === 'organizer' ? 'director' : 'events';
+  const activeScreen = (screen as Screen) || fallbackScreen;
+
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
 
   const handleEventClick = (event: Event) => {
     setSelectedEvent(event);
-    setCurrentScreen('event-details');
+    navigate(`/${userRole}/event-details`);
   };
 
   const handleBack = () => {
-    setCurrentScreen('events');
     setSelectedEvent(null);
+    navigate(`/${userRole}/events`);
+  };
+
+  const handleScreenChange = (newScreen: Screen) => {
+    navigate(`/${userRole}/${newScreen}`);
   };
 
   return (
     <div className="min-h-screen bg-background text-on-background selection:bg-primary/30">
       <TopAppBar 
-        title={currentScreen === 'director' ? "Director Hub" : "Skillsurfer"}
-        showBack={currentScreen === 'event-details'}
+        title={activeScreen === 'director' ? "Organizer Hub" : "Skillsurfer"}
+        showBack={activeScreen === 'event-details'}
         onBack={handleBack}
-        onMenuClick={() => setCurrentScreen('director')}
+        onMenuClick={() => handleScreenChange('director')}
+        currentScreen={activeScreen}
+        onScreenChange={handleScreenChange}
       />
 
       <main className="min-h-screen">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentScreen}
+            key={activeScreen}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
           >
-            {currentScreen === 'events' && <EventsFeed onEventClick={handleEventClick} />}
-            {currentScreen === 'event-details' && selectedEvent && (
+            {activeScreen === 'events' && <EventsFeed onEventClick={handleEventClick} />}
+            {activeScreen === 'event-details' && selectedEvent && (
               <EventDetails event={selectedEvent} onBack={handleBack} />
             )}
-            {currentScreen === 'profile' && <Profile />}
-            {currentScreen === 'director' && <DirectorDashboard />}
-            {['home', 'explore', 'stats'].includes(currentScreen) && (
-              <div className="pt-32 flex flex-col items-center justify-center text-on-surface-variant">
-                <LayoutDashboard className="w-16 h-16 mb-4 opacity-20" />
-                <p className="font-headline font-bold uppercase tracking-widest">
-                  {currentScreen} Screen Placeholder
-                </p>
-                <button 
-                  onClick={() => setCurrentScreen('events')}
-                  className="mt-8 text-primary font-bold hover:underline"
-                >
-                  Back to Events
-                </button>
-              </div>
-            )}
+            {activeScreen === 'profile' && <Profile onNavigate={handleScreenChange} />}
+            {activeScreen === 'director' && <OrganizerDashboard />}
+            {activeScreen === 'home' && <HomeScreen onEventClick={handleEventClick} onNavigate={handleScreenChange} />}
+            {activeScreen === 'explore' && <Explore onEventClick={handleEventClick} />}
+            {activeScreen === 'stats' && <Stats />}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      <BottomNavBar 
-        currentScreen={currentScreen === 'event-details' ? 'events' : currentScreen} 
-        onScreenChange={setCurrentScreen} 
-      />
+      {userRole === 'student' && (
+        <BottomNavBar 
+          currentScreen={activeScreen === 'event-details' ? 'events' : activeScreen} 
+          onScreenChange={handleScreenChange} 
+        />
+      )}
 
       {/* Floating Action Button */}
-      {['home', 'events', 'stats'].includes(currentScreen) && (
-        <button className="fixed bottom-24 right-6 md:bottom-12 md:right-12 w-14 h-14 kinetic-gradient rounded-full shadow-2xl flex items-center justify-center text-on-primary-container z-40 transition-transform hover:rotate-12 active:scale-90">
+      {['home', 'events', 'stats'].includes(activeScreen) && userRole === 'organizer' && (
+        <button 
+          onClick={() => handleScreenChange('director')}
+          className="fixed bottom-24 right-6 md:bottom-12 md:right-12 w-14 h-14 kinetic-gradient rounded-full shadow-2xl flex items-center justify-center text-on-primary-container z-40 transition-transform hover:rotate-12 active:scale-90"
+        >
           <Plus className="w-8 h-8" />
         </button>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  const [userRole, setUserRole] = useState<'student' | 'organizer' | null>(null);
+
+  if (!userRole) {
+    return <Login onLogin={setUserRole} />;
+  }
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route element={<ProtectedRoute allowedRole="organizer" userRole={userRole} />}>
+          <Route path="/organizer/" element={<Navigate to="/organizer/director" replace />} />
+          <Route path="/organizer/dashboard" element={<Navigate to="/organizer/director" replace />} />
+          <Route path="/organizer/:screen" element={<AppLayout userRole={userRole} />} />
+        </Route>
+        
+        <Route element={<ProtectedRoute allowedRole="student" userRole={userRole} />}>
+          <Route path="/student/" element={<Navigate to="/student/events" replace />} />
+          <Route path="/student/feed" element={<Navigate to="/student/events" replace />} />
+          <Route path="/student/:screen" element={<AppLayout userRole={userRole} />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to={userRole === 'organizer' ? '/organizer/director' : '/student/events'} replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
