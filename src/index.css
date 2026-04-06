@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&family=Lexend:wght@100;200;300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-headline: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Lexend", ui-sans-serif, system-ui, sans-serif;
+  --font-label: "Lexend", ui-sans-serif, system-ui, sans-serif;
+  --font-alt: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --color-background: #0e0e0e;
+  --color-surface: #0e0e0e;
+  --color-surface-container-low: #131313;
+  --color-surface-container-high: #20201f;
+  --color-surface-container-highest: #262626;
+  --color-surface-bright: #2c2c2c;
+  
+  --color-primary: #cafd00;
+  --color-primary-dim: #beee00;
+  --color-primary-container: #cafd00;
+  
+  --color-secondary: #00eefc;
+  --color-secondary-dim: #00deec;
+  --color-secondary-container: #006970;
+  
+  --color-tertiary: #ff7948;
+  --color-tertiary-dim: #ff7441;
+  --color-tertiary-container: #fe5e1e;
+
+  --color-violet: #b89fff;
+  --color-violet-dim: #834fff;
+
+  --color-on-background: #ffffff;
+  --color-on-surface: #ffffff;
+  --color-on-surface-variant: #adaaaa;
+  --color-outline: #767575;
+  --color-outline-variant: #484847;
+}
+
+@layer base {
+  body {
+    @apply bg-background text-on-background font-body antialiased;
+  }
+}
+
+@layer components {
+  .kinetic-gradient {
+    background: linear-gradient(135deg, var(--color-primary) 0%, #f3ffca 100%);
+  }
+  
+  .glass-nav {
+    @apply backdrop-blur-md bg-background/60;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hexagon {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  }
+}
