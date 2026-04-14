@@ -8,6 +8,8 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate, useParams, useLoca
 import { Login } from './components/Login';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { OrganizerDashboard } from './components/OrganizerDashboard';
+import { Profile } from './components/Profile';
+import { useNotification } from './hooks/useNotification';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Menu, 
@@ -61,48 +63,101 @@ const TopAppBar = ({
   onMenuClick?: () => void;
   currentScreen?: Screen;
   onScreenChange?: (screen: Screen) => void;
-}) => (
-  <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-background/60 backdrop-blur-md border-b border-white/5">
-    <div className="flex items-center gap-4">
-      <button 
-        onClick={showBack ? onBack : onMenuClick}
-        className="hover:bg-surface-container-highest transition-colors p-2 rounded-lg scale-95 active:duration-150"
-      >
-        {showBack ? (
-          <ArrowLeft className="w-6 h-6 text-primary" />
-        ) : (
-          <Menu className="w-6 h-6 text-primary" />
-        )}
-      </button>
-      <h1 className="text-2xl font-black text-primary uppercase tracking-tighter font-headline">
-        {title}
-      </h1>
-    </div>
-    <div className="flex items-center gap-6">
-      <nav className="hidden md:flex items-center gap-8 font-headline font-bold tracking-tight">
-        {['home', 'explore', 'events', 'stats'].map(screen => (
-          <button 
-            key={screen}
-            onClick={() => onScreenChange && onScreenChange(screen as Screen)}
-            className={cn(
-              "capitalize transition-colors hover:text-primary",
-              currentScreen === screen ? "text-primary" : "text-white"
-            )}
-          >
-            {screen}
-          </button>
-        ))}
-      </nav>
-      <div className="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden">
-        <img 
-          alt="Profile" 
-          className="w-full h-full object-cover" 
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuqCB8t5UO73tLceYWC1oFnaSiZLNdsTassO2jxxua4aI_2nWjSm7woybxa84knjkFgnSEs7urJLWB20ykiBIEQHSKUHcIhTNAzs0p3fHEcUi8QqtllwPXk_42-rH5JY98AtCUuVnsoKyOgKOa6bOxWLPWQsaLgYcd4nlxmdszDCltKEyH_y5p7oNhJ5A3AAkN5ztlLvzIRB3awRHuiK_D3X2rzVikAVQ-29pv8V-4JMdbCM0IYIUo74dpU_xWMNKiKl4Zrq0lHduK" 
-        />
+}) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  return (
+    <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-background/60 backdrop-blur-md border-b border-white/5">
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={showBack ? onBack : onMenuClick}
+          className="hover:bg-surface-container-highest transition-colors p-2 rounded-lg scale-95 active:duration-150"
+        >
+          {showBack ? (
+            <ArrowLeft className="w-6 h-6 text-primary" />
+          ) : (
+            <Menu className="w-6 h-6 text-primary" />
+          )}
+        </button>
+        <h1 className="text-2xl font-black text-primary uppercase tracking-tighter font-headline">
+          {title}
+        </h1>
       </div>
-    </div>
-  </header>
-);
+      <div className="flex items-center gap-6 relative">
+        <nav className="hidden md:flex items-center gap-8 font-headline font-bold tracking-tight">
+          {['home', 'explore', 'events', 'stats'].map(screen => (
+            <button 
+              key={screen}
+              onClick={() => onScreenChange && onScreenChange(screen as Screen)}
+              className={cn(
+                "capitalize transition-colors hover:text-primary",
+                currentScreen === screen ? "text-primary" : "text-white"
+              )}
+            >
+              {screen}
+            </button>
+          ))}
+        </nav>
+        
+        <div 
+          className="relative"
+        >
+          <div 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-10 h-10 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden cursor-pointer hover:border-primary transition-colors"
+          >
+            <img 
+              alt="Profile" 
+              className="w-full h-full object-cover" 
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuqCB8t5UO73tLceYWC1oFnaSiZLNdsTassO2jxxua4aI_2nWjSm7woybxa84knjkFgnSEs7urJLWB20ykiBIEQHSKUHcIhTNAzs0p3fHEcUi8QqtllwPXk_42-rH5JY98AtCUuVnsoKyOgKOa6bOxWLPWQsaLgYcd4nlxmdszDCltKEyH_y5p7oNhJ5A3AAkN5ztlLvzIRB3awRHuiK_D3X2rzVikAVQ-29pv8V-4JMdbCM0IYIUo74dpU_xWMNKiKl4Zrq0lHduK" 
+            />
+          </div>
+          
+          <AnimatePresence>
+            {isDropdownOpen && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute right-0 mt-3 w-48 bg-surface-container-high border border-outline-variant/30 rounded-xl shadow-[0_0_20px_rgba(0,0,0,0.5)] overflow-hidden z-50 flex flex-col"
+              >
+                <div className="p-3 border-b border-white/5">
+                  <p className="font-headline font-bold text-sm text-white">Alex Sterling</p>
+                  <p className="text-[10px] text-on-surface-variant font-label uppercase tracking-widest">Level 42 Athlete</p>
+                </div>
+                <button 
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    onScreenChange && onScreenChange('profile');
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm font-label hover:bg-surface-container-highest transition-colors flex items-center gap-2"
+                >
+                  <User className="w-4 h-4 text-primary" /> My Profile
+                </button>
+                <button 
+                  onClick={() => {
+                    setIsDropdownOpen(false);
+                    onScreenChange && onScreenChange('profile'); // Will navigate, but we can't easily trigger the "Settings" tab in Profile component without deep linking or context. For now, navigating to profile is sufficient.
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm font-label hover:bg-surface-container-highest transition-colors flex items-center gap-2"
+                >
+                  <Settings className="w-4 h-4 text-secondary" /> Settings
+                </button>
+                <div className="w-full h-px bg-white/5"></div>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="w-full text-left px-4 py-3 text-sm font-label text-error hover:bg-error/10 hover:text-error transition-colors flex items-center gap-2"
+                >
+                  <Lock className="w-4 h-4" /> Logout
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </header>
+  );
+};
 
 const BottomNavBar = ({ 
   currentScreen, 
@@ -435,6 +490,7 @@ const RegistrationModal = ({
 const EventDetails = ({ event, onBack }: { event: Event; onBack: () => void }) => {
   const [hasJoined, setHasJoined] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { addNotification } = useNotification();
 
   return (
     <div className="pb-32">
@@ -580,6 +636,7 @@ const EventDetails = ({ event, onBack }: { event: Event; onBack: () => void }) =
             onRegister={() => {
                setIsModalOpen(false);
                setHasJoined(true);
+               addNotification(`Successfully Registered for ${event.title}!`);
             }}
           />
         )}
@@ -588,189 +645,6 @@ const EventDetails = ({ event, onBack }: { event: Event; onBack: () => void }) =
   );
 };
 
-const Profile = ({ onNavigate }: { onNavigate: (s: Screen) => void }) => {
-  const [showAwards, setShowAwards] = useState(false);
-  const weeklyData = [
-    { day: 'Mon', intensity: 30 },
-    { day: 'Tue', intensity: 45 },
-    { day: 'Wed', intensity: 85 },
-    { day: 'Thu', intensity: 100 },
-    { day: 'Fri', intensity: 60 },
-    { day: 'Sat', intensity: 40 },
-    { day: 'Sun', intensity: 25 },
-  ];
-
-  return (
-    <div className="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto">
-      <section className="relative mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 relative overflow-hidden rounded-xl bg-surface-container-low p-8 flex flex-col justify-end min-h-[320px]">
-          <div className="absolute inset-0 z-0">
-            <img 
-              alt="Athlete background" 
-              className="w-full h-full object-cover opacity-40" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJdNxmbuEq6u7za42lV3Xs5CvklS9h6v1af0JjN9Gw6vih_ZwVYY1tb1BqmlxrnCaNmtXzi8JlSKhw6FhnJQmLqka1OIquZHSd2sBpAnEQLIaTWLGLpHg7cMQAL5NXB93a4WNZi98hUcHreQFcEAbyKzApCMtBIzLVd9f5gwaZ8ed95ju-31Xb2U7Cl9CpMgruus7pYe6pncXXmYbI46kHlFRjvjZnrDO5eqWn8Za5mSA6dzK0oY_coBNR7NjoyFBgzciwyU94_Prf" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
-          </div>
-          <div className="relative z-10">
-            <span className="inline-block px-3 py-1 mb-4 rounded-md bg-secondary text-on-secondary text-[10px] font-bold uppercase tracking-widest font-headline">All-Star</span>
-            <h2 className="text-5xl md:text-7xl font-black font-headline tracking-tighter mb-2 italic uppercase leading-none">Alex Sterling</h2>
-            <div className="flex items-center gap-6 mt-4">
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-widest text-on-surface-variant font-bold">Total Points</span>
-                <span className="text-3xl font-black font-headline text-primary italic leading-none">1,200</span>
-              </div>
-              <div className="w-px h-10 bg-outline-variant/30"></div>
-              <div className="flex flex-col">
-                <span className="text-xs uppercase tracking-widest text-on-surface-variant font-bold">Global Rank</span>
-                <span className="text-3xl font-black font-headline text-secondary leading-none">#42</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-surface-container-highest rounded-xl p-6 flex flex-col justify-between">
-          <h3 className="text-xs uppercase tracking-widest text-primary font-bold mb-6">Achievement Badges</h3>
-          <div className="space-y-4">
-            <div className="flex items-center gap-4 group">
-              <div className="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center border border-primary/20 group-hover:bg-primary/10 transition-colors">
-                <Rocket className="w-8 h-8 text-primary fill-primary" />
-              </div>
-              <div>
-                <p className="font-headline font-bold text-lg uppercase leading-tight">Game Changer</p>
-                <p className="text-xs text-on-surface-variant uppercase tracking-wide">3 Clutch Victories</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 group">
-              <div className="w-14 h-14 rounded-full bg-surface-container flex items-center justify-center border border-secondary/20 group-hover:bg-secondary/10 transition-colors">
-                <Trophy className="w-8 h-8 text-secondary fill-secondary" />
-              </div>
-              <div>
-                <p className="font-headline font-bold text-lg uppercase leading-tight">League Leader</p>
-                <p className="text-xs text-on-surface-variant uppercase tracking-wide">Top 5 Division A</p>
-              </div>
-            </div>
-          </div>
-          <button 
-            onClick={() => setShowAwards(true)}
-            disabled={showAwards}
-            className="mt-6 w-full py-3 bg-surface-container-high rounded-md text-xs font-bold uppercase tracking-widest hover:bg-surface-bright transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {showAwards ? 'ALL 12 AWARDS SYNCED ✓' : 'View All Awards'}
-          </button>
-        </div>
-      </section>
-
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <div className="md:col-span-7 bg-surface-container-low rounded-xl p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="font-headline font-black text-2xl uppercase italic tracking-tight">Registered Tournaments</h3>
-            <span onClick={() => onNavigate('explore')} className="text-xs font-bold uppercase text-primary tracking-widest cursor-pointer hover:underline">See Schedule</span>
-          </div>
-          <div className="space-y-4">
-            {EVENTS.slice(0, 2).map((event, idx) => (
-              <div key={event.id} className={cn(
-                "bg-surface-container-highest p-4 rounded-xl flex items-center justify-between group cursor-pointer border-l-4 border-transparent transition-all",
-                idx === 0 ? "hover:border-secondary" : "hover:border-tertiary"
-              )}>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0">
-                    <img className="w-full h-full object-cover" src={event.image} />
-                  </div>
-                  <div>
-                    <h4 className="font-headline font-bold uppercase tracking-tight">{event.title}</h4>
-                    <div className="flex items-center gap-2 text-xs text-on-surface-variant">
-                      <CalendarDays className="w-3 h-3" />
-                      <span>{event.date}, 2023</span>
-                      <span className="mx-1">•</span>
-                      <span>{event.location.split(',')[1] || event.location}</span>
-                    </div>
-                  </div>
-                </div>
-                <ChevronRight className={cn(
-                  "w-6 h-6 group-hover:translate-x-1 transition-transform",
-                  idx === 0 ? "text-secondary" : "text-tertiary"
-                )} />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="md:col-span-5 flex flex-col gap-6">
-          <div className="bg-surface-container-highest rounded-xl p-6 flex-1">
-            <h3 className="text-xs uppercase tracking-widest text-secondary font-bold mb-4">Weekly Intensity</h3>
-            <div className="h-32 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={weeklyData}>
-                  <Bar dataKey="intensity" radius={[2, 2, 0, 0]}>
-                    {weeklyData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.intensity === 100 ? '#00eefc' : '#006970'} 
-                        fillOpacity={entry.intensity === 100 ? 1 : 0.5}
-                      />
-                    ))}
-                  </Bar>
-                  <XAxis 
-                    dataKey="day" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#adaaaa', fontSize: 10, fontWeight: 'bold' }} 
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-          <div className="kinetic-gradient rounded-xl p-6 text-on-primary-container">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-xs uppercase font-black tracking-widest opacity-80">Last Match Score</p>
-                <h4 className="text-4xl font-black font-headline italic tracking-tighter">94.2</h4>
-              </div>
-              <div className="bg-white/20 p-2 rounded-lg">
-                <TrendingUp className="w-6 h-6" />
-              </div>
-            </div>
-            <p className="text-[10px] mt-4 uppercase font-bold">+12% from previous season average</p>
-          </div>
-        </div>
-
-        <div className="md:col-span-12 bg-surface-container-low rounded-xl p-6">
-          <h3 className="font-headline font-black text-2xl uppercase italic tracking-tight mb-6">Past Matches</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest border-b border-outline-variant/10">
-                <tr>
-                  <th className="pb-4 pr-4">Event</th>
-                  <th className="pb-4 pr-4">Result</th>
-                  <th className="pb-4 pr-4">Score</th>
-                  <th className="pb-4 pr-4">Points</th>
-                  <th className="pb-4">Date</th>
-                </tr>
-              </thead>
-              <tbody className="text-sm font-medium">
-                {MATCHES.map(match => (
-                  <tr key={match.id} className="hover:bg-surface-container-highest transition-colors cursor-pointer">
-                    <td className="py-4 pr-4 font-bold uppercase tracking-tight">{match.event}</td>
-                    <td className="py-4 pr-4">
-                      <span className={cn(
-                        "uppercase font-black italic",
-                        match.result === 'Win' ? "text-primary" : "text-secondary"
-                      )}>{match.result}</span>
-                    </td>
-                    <td className="py-4 pr-4 font-headline">{match.score}</td>
-                    <td className="py-4 pr-4">{match.points}</td>
-                    <td className="py-4 text-on-surface-variant">{match.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // Organizer Dashboard has been decoupled to src/components/OrganizerDashboard.tsx;
 
