@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Edit2, Activity, Settings, Flame, Trophy, CalendarDays, ChevronRight, X, User } from 'lucide-react';
+import { ArrowLeft, Edit2, Activity, Settings, Flame, Trophy, CalendarDays, ChevronRight, X, User, Star, Award, Medal, Check } from 'lucide-react';
 import { Screen, Event } from '../types';
 import { EVENTS } from '../data';
 import { cn } from '../lib/utils';
@@ -23,11 +23,14 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
   // Temporary state for the edit modal
   const [editName, setEditName] = useState(username);
   const [editEmail, setEditEmail] = useState(email);
+  const [bio, setBio] = useState('Passionate developer and competitive coder. Always looking for the next big challenge.');
+  const [editBio, setEditBio] = useState(bio);
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     setUsername(editName);
     setEmail(editEmail);
+    setBio(editBio);
     setIsEditModalOpen(false);
     addNotification('Profile saved successfully');
   };
@@ -35,13 +38,26 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
   const registeredEvents = EVENTS.slice(0, 2);
 
   const skills = [
-    { name: 'Basketball', score: 92, color: 'text-[#00FFFF]', bg: 'bg-[#00FFFF]' },
-    { name: 'Soccer', score: 85, color: 'text-[#CCFF00]', bg: 'bg-[#CCFF00]' },
-    { name: 'Tennis', score: 78, color: 'text-[#ff7948]', bg: 'bg-[#ff7948]' },
+    { name: 'Problem Solving', score: 92, color: 'text-[#00FFFF]', bg: 'bg-[#00FFFF]' },
+    { name: 'Algorithms', score: 85, color: 'text-[#CCFF00]', bg: 'bg-[#CCFF00]' },
+    { name: 'System Design', score: 78, color: 'text-[#ff7948]', bg: 'bg-[#ff7948]' },
+  ];
+
+  const trophies = [
+    { id: 1, title: 'Code Master', desc: 'Won 5 coding tournaments', icon: <Trophy className="w-8 h-8 text-[#CCFF00]"/>, date: 'Mar 2026' },
+    { id: 2, title: 'Early Adopter', desc: 'Joined during Beta', icon: <Star className="w-8 h-8 text-[#00FFFF]"/>, date: 'Jan 2026' },
+    { id: 3, title: 'Flawless Victory', desc: 'Perfect score in qualifiers', icon: <Medal className="w-8 h-8 text-[#ff7948]"/>, date: 'Feb 2026' },
+    { id: 4, title: 'Top 1%', desc: 'Global ranking tier', icon: <Award className="w-8 h-8 text-primary"/>, date: 'Apr 2026' },
+  ];
+
+  const matchHistory = [
+    { id: 1, event: 'Metro Hoops Open', placement: '1st Place', date: 'April 15, 2026', points: '+500', isWin: true },
+    { id: 2, event: 'City Sports League', placement: '4th Place', date: 'March 28, 2026', points: '+150', isWin: false },
+    { id: 3, event: 'Regional Qualifiers', placement: '2nd Place', date: 'March 10, 2026', points: '+300', isWin: true },
   ];
 
   return (
-    <div className="pt-24 pb-32 px-6 max-w-5xl mx-auto bg-[#121212] min-h-screen text-white font-body selection:bg-[#00FFFF]/30 relative overflow-hidden">
+    <div className="pt-24 pb-32 px-6 max-w-5xl mx-auto bg-background min-h-screen text-on-surface font-body selection:bg-[#00FFFF]/30 relative overflow-hidden">
       
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 relative z-10">
@@ -54,28 +70,29 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="absolute -bottom-2 -right-2 bg-[#CCFF00] text-black text-[10px] uppercase font-black tracking-widest px-2 py-1 rounded-sm shadow-[0_0_10px_rgba(204,255,0,0.6)]">
+            <div className="absolute -bottom-2 -right-2 bg-[#CCFF00] text-background text-[10px] uppercase font-black tracking-widest px-2 py-1 rounded-sm shadow-[0_0_10px_rgba(204,255,0,0.6)]">
               Elite
             </div>
           </div>
           <div>
-            <h1 className="font-headline text-4xl md:text-5xl font-black uppercase tracking-tighter text-white italic">
+            <h1 className="font-headline text-4xl md:text-5xl font-black uppercase tracking-tighter text-on-surface italic">
               {username.split(' ')[0]} <span className="text-[#00FFFF]">{username.split(' ').slice(1).join(' ')}</span>
             </h1>
             <p className="text-on-surface-variant text-sm font-label uppercase tracking-widest mt-1">Level 42 Athlete</p>
+            <p className="text-on-surface mt-4 max-w-lg text-sm leading-relaxed border-l-2 border-primary pl-4">{bio}</p>
           </div>
         </div>
 
         <div className="flex gap-4">
           <button 
             onClick={() => onNavigate && onNavigate('events')}
-            className="flex items-center justify-center gap-2 p-3 bg-surface-container-highest rounded-lg border border-outline-variant/30 text-white font-headline text-xs uppercase font-bold tracking-widest hover:border-[#00FFFF] hover:shadow-[0_0_15px_rgba(0,255,255,0.3)] transition-all"
+            className="flex items-center justify-center gap-2 p-3 bg-surface-container-highest rounded-lg border border-outline-variant/30 text-on-surface font-headline text-xs uppercase font-bold tracking-widest hover:border-[#00FFFF] hover:shadow-[0_0_15px_rgba(0,255,255,0.3)] transition-all"
           >
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
           <button 
             onClick={() => setIsEditModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#00FFFF] to-[#00deec] text-black rounded-lg font-headline text-xs uppercase font-black tracking-widest shadow-[0_0_20px_rgba(0,255,255,0.4)] hover:scale-105 active:scale-95 transition-all"
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#00FFFF] to-[#00deec] text-background rounded-lg font-headline text-xs uppercase font-black tracking-widest shadow-[0_0_20px_rgba(0,255,255,0.4)] hover:scale-105 active:scale-95 transition-all"
           >
             <Edit2 className="w-4 h-4" /> Edit Profile
           </button>
@@ -92,7 +109,7 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
               "px-8 py-4 font-headline uppercase font-bold tracking-widest text-sm transition-all whitespace-nowrap",
               activeTab === tab 
                 ? "text-[#CCFF00] border-b-2 border-[#CCFF00]" 
-                : "text-on-surface-variant hover:text-white"
+                : "text-on-surface-variant hover:text-on-surface"
             )}
           >
             {tab}
@@ -132,6 +149,26 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
               </div>
             </section>
 
+            {/* Trophy Case */}
+            <section>
+              <h2 className="font-headline text-2xl font-black uppercase italic tracking-tighter mb-6 flex items-center gap-3">
+                <Award className="text-[#00FFFF] w-6 h-6" /> Trophy Case
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 {trophies.map(trophy => (
+                    <motion.div whileHover={{y: -5}} key={trophy.id} className="bg-surface-container-low border border-outline-variant/20 rounded-2xl p-6 flex flex-col items-center text-center group hover:border-[#00FFFF]/50 transition-colors relative overflow-hidden">
+                       <div className="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center mb-4 border border-outline-variant/10 group-hover:scale-110 transition-transform">
+                          {trophy.icon}
+                       </div>
+                       <h3 className="font-headline font-bold text-on-surface uppercase text-sm tracking-tight">{trophy.title}</h3>
+                       <p className="text-xs text-on-surface-variant mt-2">{trophy.desc}</p>
+                       <p className="text-[10px] uppercase tracking-widest font-bold text-outline mt-4">{trophy.date}</p>
+                       <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-white/5 to-transparent rounded-bl-full pointer-events-none"></div>
+                    </motion.div>
+                 ))}
+              </div>
+            </section>
+
             {/* Registered Events */}
             <section>
               <h2 className="font-headline text-2xl font-black uppercase italic tracking-tighter mb-6 flex items-center gap-3">
@@ -152,10 +189,10 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
                       <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                         <h3 className="font-headline text-2xl font-black uppercase italic leading-none tracking-tighter text-white drop-shadow-md max-w-[70%]">
+                         <h3 className="font-headline text-2xl font-black uppercase italic leading-none tracking-tighter text-on-surface drop-shadow-md max-w-[70%]">
                            {event.title}
                          </h3>
-                         <span className="font-headline bg-[#CCFF00] text-black font-black text-xs px-2 py-1 uppercase rounded-sm tracking-widest">
+                         <span className="font-headline bg-[#CCFF00] text-background font-black text-xs px-2 py-1 uppercase rounded-sm tracking-widest">
                            {event.entryFee}
                          </span>
                       </div>
@@ -178,10 +215,29 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
         )}
 
         {activeTab === 'Activity' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="py-20 text-center text-on-surface-variant">
-            <Activity className="w-16 h-16 mx-auto mb-4 opacity-50 text-[#00FFFF]" />
-            <h3 className="font-headline text-xl font-bold uppercase tracking-widest">No Recent Activity</h3>
-            <p className="text-sm mt-2">Join an event to start building your activity log.</p>
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-3xl mx-auto">
+             <h2 className="font-headline text-2xl font-black uppercase italic tracking-tighter mb-6 flex items-center gap-3">
+                <Activity className="text-[#CCFF00] w-6 h-6" /> Tournament History
+             </h2>
+             <div className="relative border-l-2 border-outline-variant/20 ml-4 space-y-8 pb-8">
+               {matchHistory.map((match, idx) => (
+                 <div key={match.id} className="relative pl-8">
+                   <div className={cn("absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-background", match.isWin ? "bg-primary" : "bg-on-surface-variant")}></div>
+                   <div className="bg-surface-container-low border border-outline-variant/20 rounded-xl p-5 hover:bg-surface-container-high transition-colors">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <h3 className="font-headline font-bold text-lg text-on-surface">{match.event}</h3>
+                          <p className="text-xs text-on-surface-variant font-label uppercase tracking-widest mt-1">{match.date}</p>
+                        </div>
+                        <div className="text-right">
+                          <span className={cn("text-sm font-bold uppercase tracking-widest", match.isWin ? "text-primary" : "text-on-surface-variant")}>{match.placement}</span>
+                          <p className="text-xl font-headline font-black italic text-on-surface mt-1">{match.points}</p>
+                        </div>
+                      </div>
+                   </div>
+                 </div>
+               ))}
+             </div>
           </motion.div>
         )}
 
@@ -204,7 +260,7 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
                     type="text" 
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl py-4 pl-12 pr-4 text-white font-headline focus:outline-none focus:border-[#00FFFF] transition-all"
+                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl py-4 pl-12 pr-4 text-on-surface font-headline focus:outline-none focus:border-[#00FFFF] transition-all"
                   />
                 </div>
               </div>
@@ -217,7 +273,7 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl py-4 pl-12 pr-4 text-white font-headline focus:outline-none focus:border-[#CCFF00] transition-all"
+                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl py-4 pl-12 pr-4 text-on-surface font-headline focus:outline-none focus:border-[#CCFF00] transition-all"
                   />
                 </div>
               </div>
@@ -239,7 +295,7 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     className={cn(
                       "w-6 h-6 rounded-full",
-                      notifications ? "bg-black" : "bg-on-surface-variant"
+                      notifications ? "bg-background" : "bg-on-surface-variant"
                     )}
                   />
                 </button>
@@ -253,7 +309,7 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
       <AnimatePresence>
         {isEditModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)}></div>
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)}></div>
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -281,23 +337,23 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) =>
                     type="text" 
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl p-4 text-white font-headline focus:outline-none focus:border-[#00FFFF]"
+                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl p-4 text-on-surface font-headline focus:outline-none focus:border-[#00FFFF]"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs uppercase font-label tracking-widest text-[#CCFF00] font-bold">Restricted Email</label>
-                  <input 
+                  <label className="text-xs uppercase font-label tracking-widest text-primary font-bold">Bio</label>
+                  <textarea 
                     required
-                    type="email" 
-                    value={editEmail}
-                    onChange={e => setEditEmail(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl p-4 text-white font-headline focus:outline-none focus:border-[#CCFF00]"
-                  />
+                    rows={3}
+                    value={editBio}
+                    onChange={e => setEditBio(e.target.value)}
+                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl p-4 text-on-surface font-headline focus:outline-none focus:border-primary resize-none"
+                  ></textarea>
                 </div>
 
                 <div className="pt-6 border-t border-surface-container-highest">
-                  <button type="submit" className="w-full bg-[#CCFF00] py-4 rounded-xl text-black font-headline font-black uppercase italic tracking-wider text-lg hover:shadow-[0_0_30px_rgba(204,255,0,0.4)] transition-all">
+                  <button type="submit" className="w-full bg-[#CCFF00] py-4 rounded-xl text-background font-headline font-black uppercase italic tracking-wider text-lg hover:shadow-[0_0_30px_rgba(204,255,0,0.4)] transition-all">
                     Save Changes
                   </button>
                 </div>

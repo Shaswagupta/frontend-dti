@@ -3,11 +3,14 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <NotificationProvider>
-      <App />
-    </NotificationProvider>
+    <ThemeProvider>
+      <NotificationProvider>
+        <App />
+      </NotificationProvider>
+    </ThemeProvider>
   </StrictMode>,
 );

@@ -1,4 +1,4 @@
-export type Screen = 'home' | 'explore' | 'events' | 'stats' | 'profile' | 'director' | 'event-details';
+export type Screen = 'home' | 'explore' | 'events' | 'stats' | 'profile' | 'director' | 'event-details' | 'event-wizard' | 'manage-event' | 'practice' | 'jobs' | 'network' | 'certificates';
 
 export interface Event {
   id: string;
