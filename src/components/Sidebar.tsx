@@ -19,6 +19,7 @@ import {
 import { cn } from '../lib/utils';
 import { useSidebarStore } from '../store/useSidebarStore';
 import { Screen } from '../types';
+import { NavLogo } from './SkillSurferLogo';
 
 interface SidebarProps {
   currentScreen: Screen;
@@ -104,9 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             {/* Sidebar Header */}
             <div className="flex items-center justify-between px-6 h-16 border-b border-outline-variant/20 flex-shrink-0">
-              <span className="text-2xl font-black font-headline uppercase tracking-tighter italic text-primary">
-                SkillSurfer
-              </span>
+              <NavLogo />
               <button
                 onClick={closeSidebar}
                 className="p-2 rounded-lg hover:bg-surface-container-highest transition-colors text-on-surface-variant hover:text-on-surface"

@@ -1,368 +1,362 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Edit2, Activity, Settings, Flame, Trophy, CalendarDays, ChevronRight, X, User, Star, Award, Medal, Check } from 'lucide-react';
+import { Edit2, Activity, Settings, Flame, Trophy, CalendarDays, X, Star, Award, Medal, Check, Gamepad2, Globe, Twitter, Youtube, Bell, Shield, Moon, Zap, Users, Target, Clock, TrendingUp } from 'lucide-react';
 import { Screen, Event } from '../types';
 import { EVENTS } from '../data';
 import { cn } from '../lib/utils';
 import { useNotification } from '../hooks/useNotification';
-interface ProfileProps {
-  onNavigate?: (screen: Screen) => void;
-  onEventClick?: (event: Event) => void;
-}
+
+interface ProfileProps { onNavigate?: (screen: Screen) => void; onEventClick?: (event: Event) => void; }
+
+const GAMES_PLAYED = [
+  { name: 'Valorant', icon: '🎯', hours: 840, rank: 'Diamond 2', color: 'text-[#ff4655]' },
+  { name: 'CS2', icon: '🔫', hours: 620, rank: 'Global Elite', color: 'text-[#f0a500]' },
+  { name: 'Apex Legends', icon: '🔥', hours: 310, rank: 'Platinum', color: 'text-[#6a5acd]' },
+];
+
+const TROPHIES = [
+  { title: 'Diamond Fragger', desc: 'Reached Diamond in Valorant', icon: <Trophy className="w-7 h-7 text-[#b9f2ff]"/>, date: 'Mar 2026' },
+  { title: 'Clutch King', desc: '10+ 1v4 clutches recorded', icon: <Star className="w-7 h-7 text-primary"/>, date: 'Feb 2026' },
+  { title: 'Top 1%', desc: 'Global ranking tier achieved', icon: <Award className="w-7 h-7 text-[#FFD700]"/>, date: 'Apr 2026' },
+  { title: 'Flawless', desc: 'Perfect score in qualifiers', icon: <Medal className="w-7 h-7 text-secondary"/>, date: 'Jan 2026' },
+  { title: '7-Day Streak', desc: 'Practiced 7 days in a row', icon: <Flame className="w-7 h-7 text-[#ff7948]"/>, date: 'Apr 2026' },
+  { title: 'Squad Leader', desc: 'Formed & led 3 winning teams', icon: <Users className="w-7 h-7 text-tertiary"/>, date: 'Mar 2026' },
+];
+
+const MATCH_HISTORY = [
+  { id: 1, event: 'Metro Valorant Open', game: 'Valorant', placement: '1st Place 🥇', date: 'April 15, 2026', pts: '+500', win: true, kd: '3.2', hs: '48%' },
+  { id: 2, event: 'CS2 City Championship', game: 'CS2', placement: '4th Place', date: 'March 28, 2026', pts: '+150', win: false, kd: '1.4', hs: '31%' },
+  { id: 3, event: 'Regional Qualifiers', game: 'Valorant', placement: '2nd Place 🥈', date: 'March 10, 2026', pts: '+300', win: true, kd: '2.7', hs: '42%' },
+  { id: 4, event: 'Apex Invitational', game: 'Apex Legends', placement: '1st Place 🥇', date: 'Feb 20, 2026', pts: '+450', win: true, kd: '4.1', hs: '39%' },
+  { id: 5, event: 'Friday Night Frags', game: 'CS2', placement: '3rd Place 🥉', date: 'Feb 5, 2026', pts: '+200', win: true, kd: '2.0', hs: '36%' },
+];
+
+const SETTING_TOGGLES = [
+  { key: 'notifications', label: 'Push Notifications', desc: 'Alerts for tournaments & squad invites', icon: Bell },
+  { key: 'publicProfile', label: 'Public Profile', desc: 'Allow others to view your stats', icon: Globe },
+  { key: 'twoFactor', label: 'Two-Factor Auth', desc: 'Extra security for your account', icon: Shield },
+  { key: 'darkMode', label: 'Dark Mode', desc: 'Use dark theme across the platform', icon: Moon },
+  { key: 'autoJoin', label: 'Auto-join Tournaments', desc: 'Automatically register for open events', icon: Zap },
+];
 
 export const Profile: React.FC<ProfileProps> = ({ onNavigate, onEventClick }) => {
-  const [activeTab, setActiveTab] = useState<'Overview' | 'Activity' | 'Settings'>('Overview');
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<'Overview' | 'Matches' | 'Settings'>('Overview');
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const { addNotification } = useNotification();
-  
-  // State Management for settings and profile
-  const [username, setUsername] = useState('Alex Sterling');
-  const [notifications, setNotifications] = useState(true);
+
+  const [name, setName] = useState('Alex Sterling');
+  const [gamertag, setGametag] = useState('NeonStrike_X');
+  const [bio, setBio] = useState('Diamond-ranked Valorant IGL & CS2 rifler. Competing since 2021. Love the grind, hate the loss. Building my squad one clutch at a time.');
   const [email, setEmail] = useState('alex@skillsurfer.dev');
+  const [mainGame, setMainGame] = useState('Valorant');
+  const [settings, setSettings] = useState({ notifications: true, publicProfile: true, twoFactor: false, darkMode: true, autoJoin: false });
 
-  // Temporary state for the edit modal
-  const [editName, setEditName] = useState(username);
-  const [editEmail, setEditEmail] = useState(email);
-  const [bio, setBio] = useState('Passionate developer and competitive coder. Always looking for the next big challenge.');
+  const [editName, setEditName] = useState(name);
+  const [editTag, setEditTag] = useState(gamertag);
   const [editBio, setEditBio] = useState(bio);
+  const [editEmail, setEditEmail] = useState(email);
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setUsername(editName);
-    setEmail(editEmail);
-    setBio(editBio);
-    setIsEditModalOpen(false);
-    addNotification('Profile saved successfully');
+    setName(editName); setGametag(editTag); setBio(editBio); setEmail(editEmail);
+    setIsEditOpen(false);
+    addNotification('Profile updated successfully!');
   };
 
-  const registeredEvents = EVENTS.slice(0, 2);
+  const toggleSetting = (key: string) => setSettings(prev => ({ ...prev, [key]: !prev[key as keyof typeof prev] }));
 
-  const skills = [
-    { name: 'Problem Solving', score: 92, color: 'text-[#00FFFF]', bg: 'bg-[#00FFFF]' },
-    { name: 'Algorithms', score: 85, color: 'text-[#CCFF00]', bg: 'bg-[#CCFF00]' },
-    { name: 'System Design', score: 78, color: 'text-[#ff7948]', bg: 'bg-[#ff7948]' },
-  ];
+  const wins = MATCH_HISTORY.filter(m => m.win).length;
+  const winRate = Math.round((wins / MATCH_HISTORY.length) * 100);
 
-  const trophies = [
-    { id: 1, title: 'Code Master', desc: 'Won 5 coding tournaments', icon: <Trophy className="w-8 h-8 text-[#CCFF00]"/>, date: 'Mar 2026' },
-    { id: 2, title: 'Early Adopter', desc: 'Joined during Beta', icon: <Star className="w-8 h-8 text-[#00FFFF]"/>, date: 'Jan 2026' },
-    { id: 3, title: 'Flawless Victory', desc: 'Perfect score in qualifiers', icon: <Medal className="w-8 h-8 text-[#ff7948]"/>, date: 'Feb 2026' },
-    { id: 4, title: 'Top 1%', desc: 'Global ranking tier', icon: <Award className="w-8 h-8 text-primary"/>, date: 'Apr 2026' },
-  ];
-
-  const matchHistory = [
-    { id: 1, event: 'Metro Hoops Open', placement: '1st Place', date: 'April 15, 2026', points: '+500', isWin: true },
-    { id: 2, event: 'City Sports League', placement: '4th Place', date: 'March 28, 2026', points: '+150', isWin: false },
-    { id: 3, event: 'Regional Qualifiers', placement: '2nd Place', date: 'March 10, 2026', points: '+300', isWin: true },
-  ];
+  const TABS = ['Overview', 'Matches', 'Settings'] as const;
 
   return (
-    <div className="pt-24 pb-32 px-6 max-w-5xl mx-auto bg-background min-h-screen text-on-surface font-body selection:bg-[#00FFFF]/30 relative overflow-hidden">
-      
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 relative z-10">
-        <div className="flex items-center gap-6">
-          <div className="relative">
-            <div className="w-24 h-24 rounded-full border-2 border-[#00FFFF] shadow-[0_0_20px_rgba(0,255,255,0.4)] overflow-hidden">
-              <img 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuqCB8t5UO73tLceYWC1oFnaSiZLNdsTassO2jxxua4aI_2nWjSm7woybxa84knjkFgnSEs7urJLWB20ykiBIEQHSKUHcIhTNAzs0p3fHEcUi8QqtllwPXk_42-rH5JY98AtCUuVnsoKyOgKOa6bOxWLPWQsaLgYcd4nlxmdszDCltKEyH_y5p7oNhJ5A3AAkN5ztlLvzIRB3awRHuiK_D3X2rzVikAVQ-29pv8V-4JMdbCM0IYIUo74dpU_xWMNKiKl4Zrq0lHduK" 
-                alt={username} 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="absolute -bottom-2 -right-2 bg-[#CCFF00] text-background text-[10px] uppercase font-black tracking-widest px-2 py-1 rounded-sm shadow-[0_0_10px_rgba(204,255,0,0.6)]">
-              Elite
-            </div>
-          </div>
-          <div>
-            <h1 className="font-headline text-4xl md:text-5xl font-black uppercase tracking-tighter text-on-surface italic">
-              {username.split(' ')[0]} <span className="text-[#00FFFF]">{username.split(' ').slice(1).join(' ')}</span>
-            </h1>
-            <p className="text-on-surface-variant text-sm font-label uppercase tracking-widest mt-1">Level 42 Athlete</p>
-            <p className="text-on-surface mt-4 max-w-lg text-sm leading-relaxed border-l-2 border-primary pl-4">{bio}</p>
-          </div>
-        </div>
+    <div className="pt-24 pb-32 px-6 max-w-5xl mx-auto min-h-screen">
 
-        <div className="flex gap-4">
-          <button 
-            onClick={() => onNavigate && onNavigate('events')}
-            className="flex items-center justify-center gap-2 p-3 bg-surface-container-highest rounded-lg border border-outline-variant/30 text-on-surface font-headline text-xs uppercase font-bold tracking-widest hover:border-[#00FFFF] hover:shadow-[0_0_15px_rgba(0,255,255,0.3)] transition-all"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-          <button 
-            onClick={() => setIsEditModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[#00FFFF] to-[#00deec] text-background rounded-lg font-headline text-xs uppercase font-black tracking-widest shadow-[0_0_20px_rgba(0,255,255,0.4)] hover:scale-105 active:scale-95 transition-all"
-          >
-            <Edit2 className="w-4 h-4" /> Edit Profile
-          </button>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-surface-container-highest mb-10 overflow-x-auto no-scrollbar relative z-10">
-        {['Overview', 'Activity', 'Settings'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab as any)}
-            className={cn(
-              "px-8 py-4 font-headline uppercase font-bold tracking-widest text-sm transition-all whitespace-nowrap",
-              activeTab === tab 
-                ? "text-[#CCFF00] border-b-2 border-[#CCFF00]" 
-                : "text-on-surface-variant hover:text-on-surface"
-            )}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      <div className="relative z-10">
-        {activeTab === 'Overview' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
-            
-            {/* Skill Stats */}
-            <section>
-              <h2 className="font-headline text-2xl font-black uppercase italic tracking-tighter mb-6 flex items-center gap-3">
-                <Trophy className="text-[#CCFF00] w-6 h-6" /> Skill Stats
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {skills.map((skill) => (
-                  <div key={skill.name} className="bg-surface-container-low border border-surface-container-highest rounded-2xl p-6 relative overflow-hidden group">
-                    <div className="flex justify-between items-end mb-8 relative z-10">
-                      <h3 className="font-headline font-bold text-xl uppercase tracking-tight">{skill.name}</h3>
-                      <span className={cn("text-3xl font-black italic shadow-sm", skill.color)}>{skill.score}</span>
-                    </div>
-                    <div className="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden relative z-10">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${skill.score}%` }}
-                        transition={{ duration: 1, delay: 0.2 }}
-                        className={cn("h-full", skill.bg)}
-                        style={{ boxShadow: `0 0 10px ${skill.score === 92 ? '#00FFFF' : skill.score === 85 ? '#CCFF00' : '#ff7948'}` }}
-                      ></motion.div>
-                    </div>
-                    {/* Subtle Background Glow */}
-                    <div className={cn("absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-[50px] opacity-20 group-hover:opacity-40 transition-opacity", skill.bg)}></div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Trophy Case */}
-            <section>
-              <h2 className="font-headline text-2xl font-black uppercase italic tracking-tighter mb-6 flex items-center gap-3">
-                <Award className="text-[#00FFFF] w-6 h-6" /> Trophy Case
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                 {trophies.map(trophy => (
-                    <motion.div whileHover={{y: -5}} key={trophy.id} className="bg-surface-container-low border border-outline-variant/20 rounded-2xl p-6 flex flex-col items-center text-center group hover:border-[#00FFFF]/50 transition-colors relative overflow-hidden">
-                       <div className="w-16 h-16 rounded-full bg-surface-container-highest flex items-center justify-center mb-4 border border-outline-variant/10 group-hover:scale-110 transition-transform">
-                          {trophy.icon}
-                       </div>
-                       <h3 className="font-headline font-bold text-on-surface uppercase text-sm tracking-tight">{trophy.title}</h3>
-                       <p className="text-xs text-on-surface-variant mt-2">{trophy.desc}</p>
-                       <p className="text-[10px] uppercase tracking-widest font-bold text-outline mt-4">{trophy.date}</p>
-                       <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-white/5 to-transparent rounded-bl-full pointer-events-none"></div>
-                    </motion.div>
-                 ))}
-              </div>
-            </section>
-
-            {/* Registered Events */}
-            <section>
-              <h2 className="font-headline text-2xl font-black uppercase italic tracking-tighter mb-6 flex items-center gap-3">
-                <Flame className="text-[#00FFFF] w-6 h-6" /> Registered Events
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {registeredEvents.map(event => (
-                  <div 
-                    key={event.id}
-                    onClick={() => onEventClick && onEventClick(event)}
-                    className="group flex flex-col bg-surface-container-low rounded-xl overflow-hidden hover:bg-surface-container-high transition-all duration-300 cursor-pointer shadow-xl border border-surface-container-highest"
-                  >
-                    <div className="relative h-48 overflow-hidden">
-                      <img 
-                        alt={event.title} 
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
-                        src={event.image} 
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent"></div>
-                      <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                         <h3 className="font-headline text-2xl font-black uppercase italic leading-none tracking-tighter text-on-surface drop-shadow-md max-w-[70%]">
-                           {event.title}
-                         </h3>
-                         <span className="font-headline bg-[#CCFF00] text-background font-black text-xs px-2 py-1 uppercase rounded-sm tracking-widest">
-                           {event.entryFee}
-                         </span>
-                      </div>
-                    </div>
-                    <div className="p-4 flex justify-between items-center bg-surface-container-lowest">
-                      <div className="flex items-center gap-4 text-on-surface-variant font-label text-xs uppercase tracking-widest font-bold">
-                        <div className="flex items-center gap-2">
-                          <CalendarDays className="w-4 h-4 text-[#00FFFF]" />
-                          <span>{event.date}</span>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-5 h-5 text-[#00FFFF] group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-          </motion.div>
-        )}
-
-        {activeTab === 'Activity' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-3xl mx-auto">
-             <h2 className="font-headline text-2xl font-black uppercase italic tracking-tighter mb-6 flex items-center gap-3">
-                <Activity className="text-[#CCFF00] w-6 h-6" /> Tournament History
-             </h2>
-             <div className="relative border-l-2 border-outline-variant/20 ml-4 space-y-8 pb-8">
-               {matchHistory.map((match, idx) => (
-                 <div key={match.id} className="relative pl-8">
-                   <div className={cn("absolute -left-[9px] top-0 w-4 h-4 rounded-full border-2 border-background", match.isWin ? "bg-primary" : "bg-on-surface-variant")}></div>
-                   <div className="bg-surface-container-low border border-outline-variant/20 rounded-xl p-5 hover:bg-surface-container-high transition-colors">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h3 className="font-headline font-bold text-lg text-on-surface">{match.event}</h3>
-                          <p className="text-xs text-on-surface-variant font-label uppercase tracking-widest mt-1">{match.date}</p>
-                        </div>
-                        <div className="text-right">
-                          <span className={cn("text-sm font-bold uppercase tracking-widest", match.isWin ? "text-primary" : "text-on-surface-variant")}>{match.placement}</span>
-                          <p className="text-xl font-headline font-black italic text-on-surface mt-1">{match.points}</p>
-                        </div>
-                      </div>
-                   </div>
-                 </div>
-               ))}
-             </div>
-          </motion.div>
-        )}
-
-        {activeTab === 'Settings' && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-surface-container-low border border-surface-container-highest rounded-2xl p-8 max-w-2xl mx-auto">
-            <div className="flex items-center gap-4 mb-8 border-b border-surface-container-highest pb-6">
-              <Settings className="w-8 h-8 text-[#CCFF00]" />
-              <div>
-                <h3 className="font-headline text-2xl font-black uppercase tracking-tighter italic">Platform Preferences</h3>
-                <p className="text-sm text-on-surface-variant uppercase tracking-widest font-label mt-1">Configure your experience</p>
-              </div>
-            </div>
-
-            <div className="space-y-8 text-left">
-              <div className="space-y-3">
-                <label className="text-xs uppercase font-label tracking-widest font-bold text-outline">Change Username</label>
-                <div className="flex relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
-                  <input 
-                    type="text" 
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl py-4 pl-12 pr-4 text-on-surface font-headline focus:outline-none focus:border-[#00FFFF] transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-xs uppercase font-label tracking-widest font-bold text-outline">Email Address</label>
-                <div className="flex relative">
-                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">@</span>
-                  <input 
-                    type="email" 
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl py-4 pl-12 pr-4 text-on-surface font-headline focus:outline-none focus:border-[#CCFF00] transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-surface-container-highest flex items-center justify-between">
-                <div>
-                  <h4 className="font-headline font-bold uppercase tracking-tight">Push Notifications</h4>
-                  <p className="text-xs text-on-surface-variant">Receive alerts for upcoming tournaments.</p>
-                </div>
-                <button 
-                  onClick={() => setNotifications(!notifications)}
-                  className={cn(
-                    "w-14 h-8 rounded-full p-1 transition-colors relative",
-                    notifications ? "bg-[#CCFF00]" : "bg-surface-container-highest border border-outline-variant/50"
-                  )}
-                >
-                  <motion.div 
-                    animate={{ x: notifications ? 24 : 0 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    className={cn(
-                      "w-6 h-6 rounded-full",
-                      notifications ? "bg-background" : "bg-on-surface-variant"
-                    )}
-                  />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </div>
-
-      {/* Edit Profile Modal */}
+      {/* Edit Modal */}
       <AnimatePresence>
-        {isEditModalOpen && (
+        {isEditOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsEditModalOpen(false)}></div>
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-surface-container-low border border-outline-variant/30 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden"
-            >
-              <div className="flex justify-between items-center p-6 border-b border-surface-container-highest">
-                <h3 className="font-headline text-2xl font-black uppercase italic text-[#00FFFF]">Edit Profile</h3>
-                <button type="button" onClick={() => setIsEditModalOpen(false)} className="p-2 hover:bg-surface-container-highest rounded-full transition-colors">
-                  <X className="w-5 h-5 text-on-surface" />
-                </button>
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsEditOpen(false)} />
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-md bg-surface-container-low border border-outline-variant/30 rounded-2xl shadow-2xl overflow-hidden">
+              <div className="flex justify-between items-center p-5 border-b border-outline-variant/20">
+                <h3 className="font-headline font-black text-xl uppercase italic text-primary">Edit Profile</h3>
+                <button onClick={() => setIsEditOpen(false)} className="p-2 hover:bg-surface-container-highest rounded-full"><X className="w-4 h-4" /></button>
               </div>
-
-              <form onSubmit={handleSaveProfile} className="p-6 space-y-6">
-                <div className="flex justify-center mb-6">
-                  <div className="w-24 h-24 rounded-full border border-dashed border-[#00FFFF] flex justify-center items-center cursor-pointer hover:bg-[#00FFFF]/10 transition-colors">
-                     <span className="text-xs uppercase font-label text-on-surface-variant text-center font-bold">Change<br/>Avatar</span>
+              <form onSubmit={handleSave} className="p-5 space-y-4">
+                {[
+                  { label: 'Display Name', val: editName, set: setEditName, type: 'text', placeholder: 'Your name' },
+                  { label: 'Gamertag', val: editTag, set: setEditTag, type: 'text', placeholder: '@YourTag' },
+                  { label: 'Email', val: editEmail, set: setEditEmail, type: 'email', placeholder: 'you@example.com' },
+                ].map(f => (
+                  <div key={f.label} className="space-y-1.5">
+                    <label className="text-[10px] font-label font-bold uppercase tracking-widest text-outline">{f.label}</label>
+                    <input required type={f.type} value={f.val} onChange={e => f.set(e.target.value)} placeholder={f.placeholder}
+                      className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors" />
                   </div>
+                ))}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-label font-bold uppercase tracking-widest text-outline">Bio</label>
+                  <textarea rows={3} value={editBio} onChange={e => setEditBio(e.target.value)}
+                    className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors resize-none" />
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs uppercase font-label tracking-widest text-[#00FFFF] font-bold">Public Name</label>
-                  <input 
-                    required
-                    type="text" 
-                    value={editName}
-                    onChange={e => setEditName(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl p-4 text-on-surface font-headline focus:outline-none focus:border-[#00FFFF]"
-                  />
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-label font-bold uppercase tracking-widest text-outline">Main Game</label>
+                  <select value={mainGame} onChange={e => setMainGame(e.target.value)}
+                    className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors">
+                    {['Valorant', 'CS2', 'Apex Legends', 'League of Legends', 'Overwatch 2'].map(g => <option key={g}>{g}</option>)}
+                  </select>
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs uppercase font-label tracking-widest text-primary font-bold">Bio</label>
-                  <textarea 
-                    required
-                    rows={3}
-                    value={editBio}
-                    onChange={e => setEditBio(e.target.value)}
-                    className="w-full bg-surface-container-highest border border-outline-variant/30 rounded-xl p-4 text-on-surface font-headline focus:outline-none focus:border-primary resize-none"
-                  ></textarea>
-                </div>
-
-                <div className="pt-6 border-t border-surface-container-highest">
-                  <button type="submit" className="w-full bg-[#CCFF00] py-4 rounded-xl text-background font-headline font-black uppercase italic tracking-wider text-lg hover:shadow-[0_0_30px_rgba(204,255,0,0.4)] transition-all">
-                    Save Changes
-                  </button>
-                </div>
+                <button type="submit" className="w-full py-3 kinetic-gradient text-background rounded-xl font-headline font-bold uppercase tracking-wider text-sm hover:shadow-[0_0_20px_rgba(202,253,0,0.3)] transition-all active:scale-95">
+                  <Check className="w-4 h-4 inline mr-2" />Save Changes
+                </button>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
+      {/* Profile Header */}
+      <div className="relative mb-10">
+        {/* Banner */}
+        <div className="h-40 rounded-2xl bg-gradient-to-br from-surface-container-low via-primary/10 to-secondary/10 border border-outline-variant/15 overflow-hidden relative">
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(202,253,0,0.06) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        </div>
+
+        {/* Avatar + info */}
+        <div className="flex flex-col md:flex-row md:items-end gap-5 -mt-12 px-4">
+          <div className="relative flex-shrink-0">
+            <div className="w-24 h-24 rounded-2xl border-4 border-background bg-surface-container-highest flex items-center justify-center font-headline font-black text-3xl text-secondary shadow-xl">
+              AS
+            </div>
+            <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-primary text-background text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full whitespace-nowrap shadow-[0_0_10px_rgba(202,253,0,0.5)]">
+              Diamond
+            </span>
+          </div>
+
+          <div className="flex-1 min-w-0 pt-4 md:pt-0">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-3">
+              <div>
+                <h1 className="font-headline font-black text-3xl md:text-4xl uppercase italic tracking-tighter text-on-surface">
+                  {name}
+                </h1>
+                <p className="text-secondary text-sm font-label font-bold tracking-widest">@{gamertag}</p>
+                <div className="flex items-center gap-3 mt-1 flex-wrap">
+                  <span className="text-[10px] font-label text-on-surface-variant uppercase tracking-widest flex items-center gap-1"><Gamepad2 className="w-3 h-3" />{mainGame} Main</span>
+                  <span className="text-[10px] font-label text-on-surface-variant uppercase tracking-widest flex items-center gap-1"><Globe className="w-3 h-3" />NA Region</span>
+                  <span className="text-[10px] font-label text-on-surface-variant uppercase tracking-widest flex items-center gap-1"><Flame className="w-3 h-3 text-[#ff7948]" />7-Day Streak</span>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => { setEditName(name); setEditTag(gamertag); setEditBio(bio); setEditEmail(email); setIsEditOpen(true); }}
+                  className="px-5 py-2.5 kinetic-gradient text-background rounded-xl font-headline font-bold uppercase tracking-wider text-xs flex items-center gap-2 hover:scale-105 transition-transform shadow-[0_0_15px_rgba(202,253,0,0.25)] active:scale-95">
+                  <Edit2 className="w-3.5 h-3.5" /> Edit Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bio */}
+        <p className="mt-5 text-on-surface-variant text-sm leading-relaxed border-l-2 border-primary pl-4 ml-4 max-w-2xl">{bio}</p>
+      </div>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'Global Rank', value: '#42', icon: Target, color: 'text-primary' },
+          { label: 'Win Rate', value: `${winRate}%`, icon: TrendingUp, color: 'text-secondary' },
+          { label: 'Tournaments', value: '14', icon: Trophy, color: 'text-tertiary' },
+          { label: 'Hours Played', value: '1,770', icon: Clock, color: 'text-on-surface' },
+        ].map((s, i) => (
+          <motion.div key={s.label} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+            className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-5 hover:border-primary/30 transition-all group">
+            <div className="flex items-center gap-2 mb-2">
+              <s.icon className={`w-4 h-4 ${s.color}`} />
+              <p className="text-[10px] font-label font-bold uppercase tracking-widest text-on-surface-variant">{s.label}</p>
+            </div>
+            <p className={`font-headline font-black text-3xl italic tracking-tighter ${s.color}`}>{s.value}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-outline-variant/20 mb-8 overflow-x-auto no-scrollbar">
+        {TABS.map(t => (
+          <button key={t} onClick={() => setActiveTab(t)}
+            className={cn('px-6 py-3 font-headline font-bold uppercase tracking-widest text-xs transition-all whitespace-nowrap',
+              activeTab === t ? 'text-primary border-b-2 border-primary' : 'text-on-surface-variant hover:text-on-surface')}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      <AnimatePresence mode="wait">
+
+        {/* ── Overview ── */}
+        {activeTab === 'Overview' && (
+          <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-8">
+
+            {/* Games Played */}
+            <section>
+              <h2 className="font-headline font-black text-xl uppercase italic tracking-tighter mb-4 flex items-center gap-2">
+                <Gamepad2 className="w-5 h-5 text-secondary" /> Game Library
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {GAMES_PLAYED.map((g, i) => (
+                  <motion.div key={g.name} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+                    className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-5 hover:border-secondary/40 transition-all group">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="text-3xl">{g.icon}</span>
+                      <div>
+                        <h3 className="font-headline font-bold text-base text-on-surface">{g.name}</h3>
+                        <p className={`text-xs font-bold ${g.color}`}>{g.rank}</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-[10px] font-label uppercase tracking-widest text-on-surface-variant">
+                      <span>{g.hours.toLocaleString()} hrs</span>
+                      <span className="text-secondary">{g.name === 'Valorant' ? 'Main' : 'Secondary'}</span>
+                    </div>
+                    <div className="mt-2 h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min(100, (g.hours / 900) * 100)}%` }}
+                        transition={{ delay: 0.3 + i * 0.1, duration: 0.7 }}
+                        className="h-full bg-secondary rounded-full" />
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+
+            {/* Trophies */}
+            <section>
+              <h2 className="font-headline font-black text-xl uppercase italic tracking-tighter mb-4 flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-primary" /> Trophy Case
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {TROPHIES.map((t, i) => (
+                  <motion.div key={t.title} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.06 }}
+                    whileHover={{ y: -4 }}
+                    className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-5 flex items-center gap-4 hover:border-primary/30 transition-all group">
+                    <div className="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                      {t.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="font-headline font-bold text-sm text-on-surface truncate">{t.title}</h3>
+                      <p className="text-[10px] text-on-surface-variant font-label leading-snug mt-0.5">{t.desc}</p>
+                      <p className="text-[9px] text-outline font-label uppercase tracking-widest mt-1">{t.date}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </section>
+
+            {/* Social / Links */}
+            <section>
+              <h2 className="font-headline font-black text-xl uppercase italic tracking-tighter mb-4 flex items-center gap-2">
+                <Globe className="w-5 h-5 text-tertiary" /> Social Links
+              </h2>
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { icon: Twitter, label: '@NeonStrike_X', color: 'hover:border-[#1DA1F2]/60 hover:text-[#1DA1F2]' },
+                  { icon: Youtube, label: 'NeonStrike Clips', color: 'hover:border-[#FF0000]/60 hover:text-[#FF0000]' },
+                  { icon: Globe, label: 'skillsurfer.dev/alex', color: 'hover:border-primary/60 hover:text-primary' },
+                ].map(s => (
+                  <button key={s.label} className={cn('flex items-center gap-2 px-4 py-2.5 bg-surface-container-low border border-outline-variant/20 rounded-xl text-sm font-bold text-on-surface-variant transition-all', s.color)}>
+                    <s.icon className="w-4 h-4" /> {s.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+          </motion.div>
+        )}
+
+        {/* ── Matches ── */}
+        {activeTab === 'Matches' && (
+          <motion.div key="matches" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              {[
+                { label: 'Wins', value: wins, color: 'text-secondary' },
+                { label: 'Losses', value: MATCH_HISTORY.length - wins, color: 'text-error' },
+                { label: 'Win Rate', value: `${winRate}%`, color: 'text-primary' },
+              ].map(s => (
+                <div key={s.label} className="bg-surface-container-low border border-outline-variant/15 rounded-xl p-4 text-center">
+                  <p className={`font-headline font-black text-3xl italic ${s.color}`}>{s.value}</p>
+                  <p className="text-[10px] font-label uppercase tracking-widest text-on-surface-variant mt-1">{s.label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl overflow-hidden">
+              {MATCH_HISTORY.map((m, i) => (
+                <motion.div key={m.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.07 }}
+                  className={cn('flex items-center gap-4 p-4 border-b border-outline-variant/10 hover:bg-surface-container-highest transition-colors', m.win && 'border-l-4 border-l-secondary')}>
+                  <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', m.win ? 'bg-secondary/15 text-secondary' : 'bg-outline/10 text-outline')}>
+                    {m.win ? <Trophy className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm text-on-surface truncate">{m.event}</p>
+                    <p className="text-[10px] text-on-surface-variant font-label uppercase tracking-widest">{m.game} • {m.date}</p>
+                  </div>
+                  <div className="hidden md:flex items-center gap-4 text-[10px] font-bold font-label uppercase tracking-widest text-on-surface-variant">
+                    <span>K/D <span className="text-on-surface">{m.kd}</span></span>
+                    <span>HS <span className="text-on-surface">{m.hs}</span></span>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className={cn('text-sm font-bold', m.win ? 'text-secondary' : 'text-on-surface-variant')}>{m.placement}</p>
+                    <p className="font-headline font-black italic text-primary">{m.pts}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Settings ── */}
+        {activeTab === 'Settings' && (
+          <motion.div key="settings" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6 max-w-2xl">
+            <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl overflow-hidden">
+              {SETTING_TOGGLES.map((s, i) => (
+                <div key={s.key} className={cn('flex items-center justify-between p-5', i < SETTING_TOGGLES.length - 1 && 'border-b border-outline-variant/10')}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-9 h-9 rounded-xl bg-surface-container-highest flex items-center justify-center">
+                      <s.icon className="w-4 h-4 text-on-surface-variant" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-sm text-on-surface">{s.label}</p>
+                      <p className="text-[10px] text-on-surface-variant font-label">{s.desc}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => toggleSetting(s.key)}
+                    className={cn('w-12 h-6 rounded-full p-0.5 transition-colors relative flex-shrink-0',
+                      settings[s.key as keyof typeof settings] ? 'bg-primary' : 'bg-surface-container-highest border border-outline-variant/30')}>
+                    <motion.div animate={{ x: settings[s.key as keyof typeof settings] ? 24 : 0 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                      className={cn('w-5 h-5 rounded-full', settings[s.key as keyof typeof settings] ? 'bg-background' : 'bg-on-surface-variant')} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl p-5 space-y-4">
+              <h3 className="font-headline font-bold uppercase tracking-widest text-sm text-on-surface">Account Details</h3>
+              {[{ label: 'Email', val: email, type: 'email' }].map(f => (
+                <div key={f.label} className="space-y-1.5">
+                  <label className="text-[10px] font-label font-bold uppercase tracking-widest text-outline">{f.label}</label>
+                  <input type={f.type} defaultValue={f.val}
+                    className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors" />
+                </div>
+              ))}
+              <button className="px-5 py-2.5 bg-surface-container-highest rounded-xl text-sm font-bold text-on-surface hover:bg-surface-bright transition-colors border border-outline-variant/20">
+                Change Password
+              </button>
+            </div>
+
+            <button className="w-full py-3 bg-error/10 border border-error/30 text-error rounded-xl font-headline font-bold uppercase tracking-wider text-sm hover:bg-error/20 transition-colors">
+              Delete Account
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

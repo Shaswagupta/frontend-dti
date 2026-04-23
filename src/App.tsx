@@ -18,6 +18,7 @@ import { Profile } from './components/Profile';
 import { ThemeToggle } from './components/ThemeToggle';
 import { Layout } from './components/Layout';
 import { LandingPage } from './components/LandingPage';
+import { Analytics } from './components/Analytics';
 import { useNotification } from './hooks/useNotification';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -1113,7 +1114,7 @@ function AppLayout({ userRole }: { userRole: 'student' | 'organizer' }) {
       {activeScreen === 'certificates' && <CertificateStudio onBack={() => handleScreenChange('director')} />}
       {activeScreen === 'home' && <HomeScreen onEventClick={handleEventClick} onNavigate={handleScreenChange} />}
       {activeScreen === 'explore' && <Explore onEventClick={handleEventClick} />}
-      {activeScreen === 'stats' && <Stats />}
+      {activeScreen === 'stats' && <Analytics />}
       {activeScreen === 'practice' && <PracticeArena />}
       {activeScreen === 'jobs' && <JobsBoard />}
       {activeScreen === 'network' && <TeamBuilder />}

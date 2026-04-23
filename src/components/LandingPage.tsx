@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { ArrowRight, Trophy, Users, Zap, Star, ChevronDown, Play, Shield, TrendingUp, Globe, CheckCircle, Award, Target } from 'lucide-react';
+import { CompanyLogos } from './CompanyLogos';
+import { NavLogo, HeroLogo } from './SkillSurferLogo';
 
 const STATS = [
   { value: '50K+', label: 'Athletes', color: 'text-primary' },
@@ -60,9 +62,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
 
       {/* Navbar */}
       <header className="fixed top-0 w-full z-50 flex justify-between items-center px-6 md:px-16 h-16 bg-background/80 backdrop-blur-xl border-b border-outline-variant/15">
-        <motion.span initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="text-2xl font-black font-headline uppercase italic tracking-tighter text-primary">
-          SkillSurfer
-        </motion.span>
+        <NavLogo />
         <nav className="hidden md:flex items-center gap-8 font-headline font-bold text-xs uppercase tracking-widest">
           {[['Features', '#features'], ['How It Works', '#how'], ['Community', '#testimonials']].map(([label, href]) => (
             <a key={label} href={href} className="text-on-surface-variant hover:text-primary transition-colors">{label}</a>
@@ -103,6 +103,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
         ))}
 
         <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative z-10 max-w-5xl mx-auto">
+          {/* Hero Logo */}
+          <motion.div
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="flex justify-center mb-8"
+          >
+            <HeroLogo />
+          </motion.div>
+
           {/* Badge */}
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             className="inline-flex items-center gap-2 bg-surface-container-low/80 border border-primary/25 text-primary px-5 py-2 rounded-full text-[11px] font-label font-bold uppercase tracking-widest mb-10 backdrop-blur-sm"
@@ -184,6 +194,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted }) => {
           ))}
         </motion.div>
       </div>
+
+      {/* Trusted By — Company Logos */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="py-14 px-6 max-w-7xl mx-auto"
+      >
+        <p className="text-center text-[10px] font-label font-bold uppercase tracking-[0.25em] text-outline mb-10">
+          Trusted &amp; Supported By
+        </p>
+        {/* Fade-edge mask */}
+        <div
+          className="relative overflow-hidden"
+          style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)' }}
+        >
+          <CompanyLogos />
+        </div>
+      </motion.section>
 
       {/* Stats */}
       <section id="stats" className="py-24 px-6 max-w-6xl mx-auto">

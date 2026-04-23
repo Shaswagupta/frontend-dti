@@ -136,3 +136,8 @@ html[data-theme="light"] {
     clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
   }
 }
+
+@keyframes logo-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}

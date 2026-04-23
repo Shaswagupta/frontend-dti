@@ -1,121 +1,93 @@
 import React, { useState } from 'react';
-import {
-  Users, UserPlus, MessageCircle, Search, ShieldCheck, Zap, X,
-  Check, Bell, Send, ChevronRight, Globe, Award, Filter
-} from 'lucide-react';
-import { cn } from '../lib/utils';
+import { Search, X, UserPlus, MessageCircle, Check, Gamepad2, Swords, Shield, Zap, Star, Globe, Send, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '../lib/utils';
 
 // ── Types ──────────────────────────────────────────────────────────────────
-interface Member {
+interface GamerProfile {
   id: number;
   name: string;
-  role: string;
-  skills: string[];
-  experience: 'Beginner' | 'Intermediate' | 'Pro' | 'Elite';
-  lookingFor: string;
+  gamertag: string;
   avatar: string;
-  sport?: string;
-  type: 'individual' | 'team';
-  teamName?: string;
-  online?: boolean;
-  connected?: boolean;
-}
-
-interface CreateTeamForm {
-  teamName: string;
-  sport: string;
-  need: string;
-  description: string;
-}
-
-interface StatusForm {
+  rank: string;
+  rankColor: string;
+  game: string;
   role: string;
+  games: string[];
   lookingFor: string;
+  region: string;
+  winRate: string;
+  kd?: string;
+  online: boolean;
+  connected: boolean;
+  type: 'player' | 'team';
+  teamSize?: string;
 }
 
 // ── Static Data ────────────────────────────────────────────────────────────
-const ALL_MEMBERS: Member[] = [
-  { id: 1, name: 'Elena Rostova', role: 'Frontend Engineer', skills: ['React', 'UI/UX', 'Tailwind'], experience: 'Pro', lookingFor: 'Hackathon Team', avatar: 'ER', sport: 'Engineers', type: 'individual', online: true },
-  { id: 2, name: 'Marcus Vane', role: 'Data Scientist', skills: ['Python', 'PyTorch', 'SQL'], experience: 'Elite', lookingFor: 'Kaggle Competition', avatar: 'MV', sport: 'Engineers', type: 'individual', online: false },
-  { id: 3, name: 'Code Crushers', role: 'Team — Looking for Backend Dev', skills: ['Node.js', 'PostgreSQL', 'Docker'], experience: 'Pro', lookingFor: 'Backend Developer', avatar: 'CC', sport: 'Teams Looking for Members', type: 'team', teamName: 'Global AI Hackathon 2024', online: true },
-  { id: 4, name: 'Sarah Chen', role: 'Product Designer', skills: ['Figma', 'Prototyping', 'User Research'], experience: 'Intermediate', lookingFor: 'Hackathon Team', avatar: 'SC', sport: 'Designers', type: 'individual', online: true },
-  { id: 5, name: 'Dev Squad Alpha', role: 'Team — Looking for Frontend Dev', skills: ['Vue.js', 'Django', 'Redis'], experience: 'Elite', lookingFor: 'UI/UX Designer', avatar: 'DS', sport: 'Teams Looking for Members', type: 'team', teamName: 'SportsTech Summit', online: false },
-  { id: 6, name: 'James Kim', role: 'Full-Stack Developer', skills: ['Next.js', 'Go', 'MongoDB'], experience: 'Pro', lookingFor: 'Looking for Teams', avatar: 'JK', sport: 'Engineers', type: 'individual', online: true },
-  { id: 7, name: 'Anika Sharma', role: 'UX Researcher', skills: ['Maze', 'Dovetail', 'Personas'], experience: 'Intermediate', lookingFor: 'Hackathon Team', avatar: 'AS', sport: 'Designers', type: 'individual', online: false },
-  { id: 8, name: 'Pixel Pioneers', role: 'Team — Looking for Data Scientist', skills: ['React Native', 'FastAPI', 'AWS'], experience: 'Elite', lookingFor: 'ML Engineer', avatar: 'PP', sport: 'Teams Looking for Members', type: 'team', teamName: 'National App Challenge', online: true },
+const RANK_COLORS: Record<string, string> = {
+  Bronze: 'text-[#CD7F32]',
+  Silver: 'text-[#C0C0C0]',
+  Gold: 'text-[#FFD700]',
+  Platinum: 'text-[#00FFFF]',
+  Diamond: 'text-[#b9f2ff]',
+  Elite: 'text-primary',
+  Pro: 'text-tertiary',
+};
+
+const ALL_PLAYERS: GamerProfile[] = [
+  { id: 1, name: 'Elena Rostova', gamertag: 'NeonStrike_X', avatar: 'ER', rank: 'Diamond', rankColor: 'text-[#b9f2ff]', game: 'Valorant', role: 'Duelist', games: ['Valorant', 'CS2', 'Apex'], lookingFor: 'Ranked Squad', region: 'EU', winRate: '72%', kd: '2.4', online: true, connected: false, type: 'player' },
+  { id: 2, name: 'Marcus Vane', gamertag: 'DataPhantom', avatar: 'MV', rank: 'Elite', rankColor: 'text-primary', game: 'CS2', role: 'Sniper', games: ['CS2', 'Valorant'], lookingFor: 'Tournament Team', region: 'NA', winRate: '68%', kd: '3.1', online: false, connected: false, type: 'player' },
+  { id: 3, name: 'Pixel Vanguards', gamertag: 'Team Pixel', avatar: 'PV', rank: 'Pro', rankColor: 'text-tertiary', game: 'Valorant', role: 'Team', games: ['Valorant', 'Overwatch 2'], lookingFor: 'IGL / Controller', region: 'NA', winRate: '81%', online: true, connected: false, type: 'team', teamSize: '4/5' },
+  { id: 4, name: 'Sarah Chen', gamertag: 'GhostBlade99', avatar: 'SC', rank: 'Platinum', rankColor: 'text-[#00FFFF]', game: 'Apex Legends', role: 'Support', games: ['Apex Legends', 'Fortnite'], lookingFor: 'Casual Squad', region: 'ASIA', winRate: '61%', kd: '1.8', online: true, connected: false, type: 'player' },
+  { id: 5, name: 'Jordan Park', gamertag: 'VoidRunner', avatar: 'JP', rank: 'Gold', rankColor: 'text-[#FFD700]', game: 'League of Legends', role: 'Mid Laner', games: ['LoL', 'Dota 2'], lookingFor: 'Clash Team', region: 'NA', winRate: '55%', online: false, connected: false, type: 'player' },
+  { id: 6, name: 'Cyber Wolves', gamertag: 'CyberWolves', avatar: 'CW', rank: 'Elite', rankColor: 'text-primary', game: 'CS2', role: 'Team', games: ['CS2', 'Valorant', 'R6 Siege'], lookingFor: 'AWPer / Entry Fragger', region: 'EU', winRate: '76%', online: true, connected: false, type: 'team', teamSize: '3/5' },
+  { id: 7, name: 'Kai Nakamura', gamertag: 'SilentKai', avatar: 'KN', rank: 'Diamond', rankColor: 'text-[#b9f2ff]', game: 'Overwatch 2', role: 'Tank', games: ['Overwatch 2', 'Apex Legends'], lookingFor: 'Competitive Team', region: 'ASIA', winRate: '69%', kd: '2.0', online: true, connected: false, type: 'player' },
+  { id: 8, name: 'Priya Nair', gamertag: 'QuantumFlick', avatar: 'PN', rank: 'Gold', rankColor: 'text-[#FFD700]', game: 'Valorant', role: 'Controller', games: ['Valorant'], lookingFor: 'Ranked Grind', region: 'ASIA', winRate: '58%', kd: '1.4', online: false, connected: false, type: 'player' },
 ];
 
-const FILTER_TABS = ['All', 'Looking for Teams', 'Teams Looking for Members', 'Designers', 'Engineers'];
-const SPORTS = ['Basketball', 'Soccer', 'Tennis', 'Gaming', 'E-Sports', 'Coding'];
-const EXPERIENCE_COLORS: Record<string, string> = {
-  Beginner: 'bg-outline/20 text-outline',
-  Intermediate: 'bg-secondary/15 text-secondary',
-  Pro: 'bg-primary/15 text-primary',
-  Elite: 'bg-tertiary/15 text-tertiary',
+const GAMES = ['All Games', 'Valorant', 'CS2', 'Apex Legends', 'League of Legends', 'Overwatch 2', 'Fortnite'];
+const REGIONS = ['All Regions', 'NA', 'EU', 'ASIA'];
+const ROLES = ['All Roles', 'Duelist', 'Sniper', 'Support', 'Tank', 'Mid Laner', 'Controller', 'Team'];
+
+const GAME_ICONS: Record<string, string> = {
+  Valorant: '🎯', CS2: '🔫', 'Apex Legends': '🔥', 'League of Legends': '⚔️',
+  'Overwatch 2': '🛡️', Fortnite: '⛏️', 'Dota 2': '🧙', 'R6 Siege': '💣',
 };
 
 // ── Message Modal ──────────────────────────────────────────────────────────
-const MessageModal = ({ member, onClose }: { member: Member; onClose: () => void }) => {
+const MsgModal = ({ player, onClose }: { player: GamerProfile; onClose: () => void }) => {
   const [msg, setMsg] = useState('');
   const [sent, setSent] = useState(false);
-
-  const handleSend = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!msg.trim()) return;
-    setSent(true);
-    setTimeout(onClose, 1500);
-  };
-
+  const handle = (e: React.FormEvent) => { e.preventDefault(); if (msg.trim()) { setSent(true); setTimeout(onClose, 1500); } };
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-md bg-surface-container-low border border-outline-variant/30 rounded-2xl shadow-2xl overflow-hidden"
-      >
-        <div className="flex justify-between items-center p-5 border-b border-outline-variant/20">
+      <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+        className="relative w-full max-w-md bg-surface-container-low border border-outline-variant/30 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="flex items-center justify-between p-5 border-b border-outline-variant/20">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center font-black text-secondary font-headline">
-              {member.avatar}
-            </div>
+            <div className="w-10 h-10 rounded-xl bg-surface-container-highest font-headline font-black text-secondary text-sm flex items-center justify-center">{player.avatar}</div>
             <div>
-              <h3 className="font-headline font-bold text-on-surface">{member.name}</h3>
-              <p className="text-[10px] text-on-surface-variant font-label uppercase tracking-widest">{member.role}</p>
+              <p className="font-bold text-on-surface text-sm">{player.name}</p>
+              <p className="text-[10px] text-secondary font-label uppercase tracking-widest">{player.gamertag}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-surface-container-highest rounded-full transition-colors">
-            <X className="w-5 h-5 text-on-surface-variant" />
-          </button>
+          <button onClick={onClose} className="p-2 hover:bg-surface-container-highest rounded-full transition-colors"><X className="w-4 h-4 text-on-surface-variant" /></button>
         </div>
         {sent ? (
-          <div className="p-10 flex flex-col items-center gap-3 text-center">
-            <div className="w-16 h-16 rounded-full bg-secondary/15 flex items-center justify-center">
-              <Check className="w-8 h-8 text-secondary" />
-            </div>
-            <p className="font-headline font-bold uppercase tracking-wider text-on-surface">Message Sent!</p>
-            <p className="text-sm text-on-surface-variant">Your connection request has been sent to {member.name}.</p>
+          <div className="p-10 text-center flex flex-col items-center gap-3">
+            <div className="w-14 h-14 rounded-full bg-secondary/15 flex items-center justify-center"><Check className="w-7 h-7 text-secondary" /></div>
+            <p className="font-headline font-bold uppercase text-on-surface">Request Sent!</p>
+            <p className="text-sm text-on-surface-variant">Party invite sent to {player.gamertag}.</p>
           </div>
         ) : (
-          <form onSubmit={handleSend} className="p-5 space-y-4">
-            <div className="bg-surface-container rounded-xl p-3 text-sm text-on-surface-variant font-label">
-              💡 Tip: Introduce yourself and mention what you're looking for to increase response rates.
-            </div>
-            <textarea
-              required
-              rows={4}
-              value={msg}
-              onChange={e => setMsg(e.target.value)}
-              placeholder={`Hi ${member.name.split(' ')[0]}, I noticed your profile and think we'd work well together for...`}
-              className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-4 text-on-surface text-sm focus:outline-none focus:border-secondary transition-colors resize-none font-body"
-            />
-            <button
-              type="submit"
-              className="w-full py-3 bg-secondary text-background rounded-xl font-headline font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 hover:brightness-110 transition-all active:scale-95"
-            >
-              <Send className="w-4 h-4" /> Send Message
+          <form onSubmit={handle} className="p-5 space-y-4">
+            <textarea required rows={3} value={msg} onChange={e => setMsg(e.target.value)}
+              placeholder={`Hey ${player.gamertag}! I'm looking for a ${player.lookingFor} teammate. Want to squad up?`}
+              className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-sm text-on-surface focus:outline-none focus:border-secondary transition-colors resize-none" />
+            <button type="submit" className="w-full py-3 bg-secondary text-background rounded-xl font-headline font-bold uppercase tracking-wider text-sm flex items-center justify-center gap-2 hover:brightness-110 active:scale-95 transition-all">
+              <Send className="w-4 h-4" /> Send Party Invite
             </button>
           </form>
         )}
@@ -124,82 +96,131 @@ const MessageModal = ({ member, onClose }: { member: Member; onClose: () => void
   );
 };
 
+// ── Player Card ────────────────────────────────────────────────────────────
+const PlayerCard = ({ player, onConnect, onMessage }: { key?: React.Key; player: GamerProfile; onConnect: (id: number) => void; onMessage: (p: GamerProfile) => void }) => (
+  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} layout
+    className="bg-surface-container-low border border-outline-variant/10 rounded-2xl p-5 hover:border-secondary/40 transition-all group relative overflow-hidden"
+  >
+    {/* Online dot */}
+    {player.online && <div className="absolute top-4 right-4 w-2.5 h-2.5 rounded-full bg-secondary border-2 border-surface-container-low animate-pulse" />}
+
+    {/* Header */}
+    <div className="flex items-start gap-4 mb-4">
+      <div className="relative">
+        <div className="w-14 h-14 rounded-2xl bg-surface-container-highest flex items-center justify-center font-headline font-black text-xl text-secondary flex-shrink-0">
+          {player.avatar}
+        </div>
+        <span className="absolute -bottom-1 -right-1 text-sm">{GAME_ICONS[player.game] || '🎮'}</span>
+      </div>
+      <div className="min-w-0 flex-1">
+        <h3 className="font-headline font-bold text-base text-on-surface group-hover:text-secondary transition-colors truncate">{player.name}</h3>
+        <p className="text-[11px] text-secondary font-label font-bold tracking-widest truncate">@{player.gamertag}</p>
+        <div className="flex items-center gap-2 mt-1">
+          <span className={`text-[10px] font-black uppercase ${player.rankColor}`}>{player.rank}</span>
+          <span className="text-outline">•</span>
+          <span className="text-[10px] text-on-surface-variant font-label uppercase tracking-widest">{player.role}</span>
+          {player.type === 'team' && player.teamSize && (
+            <span className="ml-auto text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">{player.teamSize} members</span>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Stats row */}
+    <div className="flex gap-3 mb-4">
+      <div className="flex-1 bg-surface-container rounded-xl p-2.5 text-center">
+        <p className="text-[10px] text-on-surface-variant font-label uppercase tracking-widest mb-0.5">Win Rate</p>
+        <p className="font-headline font-black text-sm text-primary">{player.winRate}</p>
+      </div>
+      {player.kd && (
+        <div className="flex-1 bg-surface-container rounded-xl p-2.5 text-center">
+          <p className="text-[10px] text-on-surface-variant font-label uppercase tracking-widest mb-0.5">K/D</p>
+          <p className="font-headline font-black text-sm text-secondary">{player.kd}</p>
+        </div>
+      )}
+      <div className="flex-1 bg-surface-container rounded-xl p-2.5 text-center">
+        <p className="text-[10px] text-on-surface-variant font-label uppercase tracking-widest mb-0.5">Region</p>
+        <p className="font-headline font-black text-sm text-tertiary">{player.region}</p>
+      </div>
+    </div>
+
+    {/* Games played */}
+    <div className="flex flex-wrap gap-1.5 mb-3">
+      {player.games.map(g => (
+        <span key={g} className="px-2 py-0.5 bg-surface-container-highest rounded text-[10px] font-bold text-on-surface-variant font-label uppercase tracking-widest">
+          {GAME_ICONS[g]} {g}
+        </span>
+      ))}
+    </div>
+
+    {/* Looking for */}
+    <div className="flex items-center gap-1.5 text-xs text-on-surface-variant mb-4">
+      <Swords className="w-3.5 h-3.5 text-secondary flex-shrink-0" />
+      <span className="truncate">Looking for: <span className="text-on-surface font-bold">{player.lookingFor}</span></span>
+    </div>
+
+    {/* Actions */}
+    <div className="flex gap-2">
+      <button onClick={() => onConnect(player.id)}
+        className={cn('flex-1 py-2 rounded-xl font-headline font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95',
+          player.connected ? 'bg-secondary/10 text-secondary border border-secondary/30 cursor-default' : 'bg-secondary/10 text-secondary hover:bg-secondary hover:text-background'
+        )}>
+        {player.connected ? <><Check className="w-3.5 h-3.5" /> In Squad</> : <><UserPlus className="w-3.5 h-3.5" /> Invite</>}
+      </button>
+      <button onClick={() => onMessage(player)} className="px-3 py-2 bg-surface-container-highest rounded-xl text-on-surface-variant hover:bg-surface-bright hover:text-on-surface transition-colors">
+        <MessageCircle className="w-4 h-4" />
+      </button>
+    </div>
+  </motion.div>
+);
+
 // ── Create Team Modal ──────────────────────────────────────────────────────
-const CreateTeamModal = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) => {
-  const [form, setForm] = useState<CreateTeamForm>({ teamName: '', sport: '', need: '', description: '' });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onSuccess();
-    onClose();
-  };
-
+const CreateSquadModal = ({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) => {
+  const [form, setForm] = useState({ name: '', game: '', role: '', size: '5', region: 'NA' });
+  const handle = (e: React.FormEvent) => { e.preventDefault(); onSuccess(); onClose(); };
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-lg bg-surface-container-low border border-outline-variant/30 rounded-2xl shadow-2xl overflow-hidden"
-      >
-        <div className="flex justify-between items-center p-6 border-b border-outline-variant/20">
+      <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
+        className="relative w-full max-w-md bg-surface-container-low border border-outline-variant/30 rounded-2xl overflow-hidden shadow-2xl">
+        <div className="flex justify-between items-center p-5 border-b border-outline-variant/20">
           <div>
-            <p className="text-[10px] text-primary font-label font-bold uppercase tracking-widest">Create</p>
-            <h3 className="font-headline font-black text-xl uppercase italic text-on-surface">New Team</h3>
+            <p className="text-[10px] text-primary font-label font-bold uppercase tracking-widest">Form a</p>
+            <h3 className="font-headline font-black text-xl uppercase italic text-on-surface">New Squad</h3>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-surface-container-highest rounded-full transition-colors">
-            <X className="w-5 h-5 text-on-surface-variant" />
-          </button>
+          <button onClick={onClose} className="p-2 hover:bg-surface-container-highest rounded-full transition-colors"><X className="w-4 h-4 text-on-surface-variant" /></button>
         </div>
-        <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          <div className="space-y-2">
-            <label className="text-xs font-label font-bold uppercase tracking-widest text-outline">Team Name</label>
-            <input
-              required
-              value={form.teamName}
-              onChange={e => setForm({ ...form, teamName: e.target.value })}
-              placeholder="e.g. Neon Strikers"
-              className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
-            />
+        <form onSubmit={handle} className="p-5 space-y-4">
+          {[
+            { label: 'Team / Squad Name', key: 'name', placeholder: 'e.g. Neon Strikers' },
+            { label: 'Looking For (Role)', key: 'role', placeholder: 'e.g. AWPer, Healer, IGL...' },
+          ].map(f => (
+            <div key={f.key} className="space-y-1.5">
+              <label className="text-[10px] font-label font-bold uppercase tracking-widest text-outline">{f.label}</label>
+              <input required value={(form as any)[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })}
+                placeholder={f.placeholder}
+                className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors" />
+            </div>
+          ))}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-label font-bold uppercase tracking-widest text-outline">Game</label>
+              <select required value={form.game} onChange={e => setForm({ ...form, game: e.target.value })}
+                className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors">
+                <option value="">Select...</option>
+                {GAMES.slice(1).map(g => <option key={g} value={g}>{GAME_ICONS[g]} {g}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-label font-bold uppercase tracking-widest text-outline">Region</label>
+              <select value={form.region} onChange={e => setForm({ ...form, region: e.target.value })}
+                className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors">
+                {REGIONS.slice(1).map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-xs font-label font-bold uppercase tracking-widest text-outline">Sport / Domain</label>
-            <select
-              required
-              value={form.sport}
-              onChange={e => setForm({ ...form, sport: e.target.value })}
-              className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
-            >
-              <option value="">Select...</option>
-              {SPORTS.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-label font-bold uppercase tracking-widest text-outline">Looking For</label>
-            <input
-              required
-              value={form.need}
-              onChange={e => setForm({ ...form, need: e.target.value })}
-              placeholder="e.g. Backend Developer, Data Scientist..."
-              className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-label font-bold uppercase tracking-widest text-outline">Team Description</label>
-            <textarea
-              rows={3}
-              value={form.description}
-              onChange={e => setForm({ ...form, description: e.target.value })}
-              placeholder="Describe your team's goals and what you're building..."
-              className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors resize-none"
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full py-3 kinetic-gradient text-background rounded-xl font-headline font-bold uppercase tracking-wider text-sm hover:shadow-[0_0_20px_rgba(202,253,0,0.3)] transition-all active:scale-95"
-          >
-            Create Team
+          <button type="submit" className="w-full py-3 kinetic-gradient text-background rounded-xl font-headline font-bold uppercase tracking-wider text-sm hover:shadow-[0_0_20px_rgba(202,253,0,0.3)] transition-all active:scale-95">
+            🎮 Create Squad
           </button>
         </form>
       </motion.div>
@@ -207,149 +228,49 @@ const CreateTeamModal = ({ onClose, onSuccess }: { onClose: () => void; onSucces
   );
 };
 
-// ── Member Card ─────────────────────────────────────────────────────────────
-const MemberCard = ({
-  member,
-  onConnect,
-  onMessage,
-}: {
-  key?: React.Key;
-  member: Member;
-  onConnect: (id: number) => void;
-  onMessage: (m: Member) => void;
-}) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, scale: 0.95 }}
-    layout
-    className="bg-surface-container-low border border-outline-variant/10 p-5 rounded-2xl hover:border-secondary/40 transition-all group flex gap-5"
-  >
-    {/* Avatar */}
-    <div className="relative shrink-0">
-      <div className="w-16 h-16 rounded-2xl bg-surface-container-highest flex items-center justify-center text-2xl font-black font-headline text-secondary">
-        {member.avatar}
-      </div>
-      {member.online && (
-        <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-secondary border-2 border-surface-container-low" title="Online" />
-      )}
-    </div>
-
-    {/* Body */}
-    <div className="flex-grow min-w-0">
-      <div className="flex justify-between items-start mb-1 gap-2">
-        <div className="min-w-0">
-          <h3 className="text-base font-headline font-bold group-hover:text-secondary transition-colors truncate">
-            {member.name}
-            {member.experience === 'Elite' && <ShieldCheck className="inline w-4 h-4 text-primary ml-1.5 mb-0.5" />}
-          </h3>
-          <p className="text-xs text-on-surface-variant truncate">{member.role}</p>
-        </div>
-        <span className={cn('text-[10px] font-label font-black uppercase tracking-widest px-2 py-0.5 rounded-full flex-shrink-0', EXPERIENCE_COLORS[member.experience])}>
-          {member.experience}
-        </span>
-      </div>
-
-      <div className="flex flex-wrap gap-1.5 mb-3 mt-2">
-        {member.skills.map(s => (
-          <span key={s} className="bg-surface-container-highest px-2 py-0.5 rounded text-[10px] font-bold font-label uppercase tracking-widest text-on-surface-variant">
-            {s}
-          </span>
-        ))}
-      </div>
-
-      <div className="flex items-center gap-1 text-xs text-on-surface-variant mb-1">
-        <Zap className="w-3 h-3 text-secondary flex-shrink-0" />
-        <span className="truncate">{member.lookingFor}</span>
-      </div>
-      {member.teamName && (
-        <div className="flex items-center gap-1 text-[11px] text-primary font-bold mb-2">
-          <Globe className="w-3 h-3" />
-          <span className="truncate">Target: {member.teamName}</span>
-        </div>
-      )}
-
-      <div className="flex gap-2 mt-3">
-        <button
-          onClick={() => onConnect(member.id)}
-          className={cn(
-            'flex-grow py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95',
-            member.connected
-              ? 'bg-secondary/10 text-secondary border border-secondary/30 cursor-default'
-              : 'bg-secondary/10 text-secondary hover:bg-secondary hover:text-background'
-          )}
-        >
-          {member.connected ? <><Check className="w-3.5 h-3.5" /> Connected</> : <><UserPlus className="w-3.5 h-3.5" /> Connect</>}
-        </button>
-        <button
-          onClick={() => onMessage(member)}
-          className="px-3 py-2 bg-surface-container-highest rounded-lg text-on-surface-variant hover:bg-surface-bright hover:text-on-surface transition-colors"
-          title="Send message"
-        >
-          <MessageCircle className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  </motion.div>
-);
-
 // ── Main Component ──────────────────────────────────────────────────────────
 export const TeamBuilder = () => {
-  const [filter, setFilter] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [members, setMembers] = useState<Member[]>(ALL_MEMBERS);
-  const [messagingMember, setMessagingMember] = useState<Member | null>(null);
-  const [showCreateTeam, setShowCreateTeam] = useState(false);
-  const [showStatusModal, setShowStatusModal] = useState(false);
-  const [successToast, setSuccessToast] = useState('');
-  const [statusForm, setStatusForm] = useState<StatusForm>({ role: '', lookingFor: '' });
+  const [players, setPlayers] = useState<GamerProfile[]>(ALL_PLAYERS);
+  const [search, setSearch] = useState('');
+  const [gameFilter, setGameFilter] = useState('All Games');
+  const [regionFilter, setRegionFilter] = useState('All Regions');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'player' | 'team'>('all');
+  const [messaging, setMessaging] = useState<GamerProfile | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [toast, setToast] = useState('');
 
-  const showToast = (msg: string) => {
-    setSuccessToast(msg);
-    setTimeout(() => setSuccessToast(''), 3000);
-  };
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
   const handleConnect = (id: number) => {
-    setMembers(prev =>
-      prev.map(m => m.id === id && !m.connected ? { ...m, connected: true } : m)
-    );
-    const member = members.find(m => m.id === id);
-    if (member && !member.connected) showToast(`Connected with ${member.name}!`);
+    const p = players.find(p => p.id === id);
+    if (p && !p.connected) {
+      setPlayers(prev => prev.map(pl => pl.id === id ? { ...pl, connected: true } : pl));
+      showToast(`Squad invite sent to ${p.gamertag}!`);
+    }
   };
 
-  const filteredMembers = members.filter(m => {
-    const matchesFilter =
-      filter === 'All' ||
-      (filter === 'Looking for Teams' && m.type === 'individual') ||
-      (filter === 'Teams Looking for Members' && m.type === 'team') ||
-      m.sport === filter;
-
-    const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      !q ||
-      m.name.toLowerCase().includes(q) ||
-      m.role.toLowerCase().includes(q) ||
-      m.skills.some(s => s.toLowerCase().includes(q)) ||
-      m.lookingFor.toLowerCase().includes(q);
-
-    return matchesFilter && matchesSearch;
+  const filtered = players.filter(p => {
+    const q = search.toLowerCase();
+    return (
+      (gameFilter === 'All Games' || p.games.includes(gameFilter)) &&
+      (regionFilter === 'All Regions' || p.region === regionFilter) &&
+      (typeFilter === 'all' || p.type === typeFilter) &&
+      (!q || p.name.toLowerCase().includes(q) || p.gamertag.toLowerCase().includes(q) ||
+        p.games.some(g => g.toLowerCase().includes(q)) || p.role.toLowerCase().includes(q))
+    );
   });
 
-  const connectedCount = members.filter(m => m.connected).length;
+  const squadCount = players.filter(p => p.connected).length;
 
   return (
     <div className="pt-24 pb-32 px-6 max-w-7xl mx-auto space-y-8">
 
       {/* Toast */}
       <AnimatePresence>
-        {successToast && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-secondary text-background px-6 py-3 rounded-full font-headline font-bold uppercase tracking-wider text-sm shadow-2xl flex items-center gap-2"
-          >
-            <Check className="w-4 h-4" /> {successToast}
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-secondary text-background px-6 py-3 rounded-full font-headline font-bold uppercase tracking-wider text-sm shadow-2xl flex items-center gap-2">
+            <Gamepad2 className="w-4 h-4" /> {toast}
           </motion.div>
         )}
       </AnimatePresence>
@@ -357,150 +278,85 @@ export const TeamBuilder = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-outline-variant/20 pb-8">
         <div>
-          <span className="text-secondary font-label text-xs uppercase tracking-[0.2em] font-bold">Network &amp; Collaborate</span>
+          <span className="text-secondary font-label text-xs uppercase tracking-[0.2em] font-bold flex items-center gap-2">
+            <Gamepad2 className="w-4 h-4" /> Squad Finder
+          </span>
           <h2 className="text-4xl md:text-6xl font-headline font-bold text-on-surface mt-2 tracking-tighter uppercase italic">
-            Team Builder
+            Find Your<br /><span className="text-primary drop-shadow-[0_0_20px_rgba(202,253,0,0.4)]">Squad</span>
           </h2>
           <p className="text-on-surface-variant text-sm mt-2">
-            {connectedCount > 0 ? `${connectedCount} connection${connectedCount > 1 ? 's' : ''} made` : 'Find teammates for your next big challenge'}
+            {squadCount > 0 ? `${squadCount} player${squadCount > 1 ? 's' : ''} in your squad` : 'Connect with elite gamers across all titles'}
           </p>
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={() => setShowCreateTeam(true)}
-            className="px-5 py-3 bg-surface-container-highest rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-surface-bright transition-colors border border-outline-variant/30 text-on-surface"
-          >
-            <Users className="w-4 h-4" /> Create Team
+          <button onClick={() => setShowCreate(true)}
+            className="px-5 py-3 bg-surface-container-highest rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-surface-bright transition-colors border border-outline-variant/30 text-on-surface">
+            <Users className="w-4 h-4" /> Form Squad
           </button>
-          <button
-            onClick={() => setShowStatusModal(true)}
-            className="px-5 py-3 kinetic-gradient text-background rounded-xl font-bold text-sm flex items-center gap-2 hover:scale-105 transition-transform shadow-[0_0_15px_rgba(202,253,0,0.2)]"
-          >
-            <UserPlus className="w-4 h-4" /> Update My Status
+          <button className="px-5 py-3 kinetic-gradient text-background rounded-xl font-bold text-sm flex items-center gap-2 hover:scale-105 transition-transform shadow-[0_0_15px_rgba(202,253,0,0.2)]">
+            <Zap className="w-4 h-4" /> Update Profile
           </button>
         </div>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant w-5 h-5" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          placeholder="Search for skills, people, or teams..."
-          className="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl py-4 pl-12 pr-4 text-on-surface focus:outline-none focus:border-secondary transition-colors text-sm"
-        />
-        {searchQuery && (
-          <button onClick={() => setSearchQuery('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface">
-            <X className="w-4 h-4" />
-          </button>
-        )}
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant" />
+        <input type="text" value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Search by name, gamertag, game, or role..."
+          className="w-full bg-surface-container-low border border-outline-variant/20 rounded-xl py-4 pl-12 pr-4 text-on-surface focus:outline-none focus:border-secondary transition-colors text-sm" />
+        {search && <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2"><X className="w-4 h-4 text-on-surface-variant hover:text-on-surface" /></button>}
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
-        {FILTER_TABS.map(f => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              'px-5 py-2 rounded-full text-xs font-bold uppercase tracking-widest whitespace-nowrap transition-all',
-              filter === f
-                ? 'bg-secondary text-background shadow-[0_0_10px_rgba(0,238,252,0.25)]'
-                : 'bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest'
-            )}
-          >
-            {f}
-          </button>
-        ))}
+      <div className="flex flex-wrap gap-3">
+        {/* Type toggle */}
+        <div className="flex bg-surface-container-highest rounded-xl p-1 gap-1">
+          {(['all', 'player', 'team'] as const).map(t => (
+            <button key={t} onClick={() => setTypeFilter(t)}
+              className={cn('px-4 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all',
+                typeFilter === t ? 'bg-secondary text-background' : 'text-on-surface-variant hover:text-on-surface')}>
+              {t === 'all' ? 'All' : t === 'player' ? '👤 Players' : '🛡️ Teams'}
+            </button>
+          ))}
+        </div>
+
+        {/* Game filter */}
+        <select value={gameFilter} onChange={e => setGameFilter(e.target.value)}
+          className="bg-surface-container-highest text-on-surface text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-xl border border-outline-variant/20 focus:outline-none focus:border-secondary transition-colors cursor-pointer">
+          {GAMES.map(g => <option key={g} value={g}>{g}</option>)}
+        </select>
+
+        {/* Region filter */}
+        <select value={regionFilter} onChange={e => setRegionFilter(e.target.value)}
+          className="bg-surface-container-highest text-on-surface text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-xl border border-outline-variant/20 focus:outline-none focus:border-secondary transition-colors cursor-pointer">
+          {REGIONS.map(r => <option key={r} value={r}>{r}</option>)}
+        </select>
+
+        <span className="ml-auto self-center text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant">
+          {filtered.length} result{filtered.length !== 1 ? 's' : ''}
+        </span>
       </div>
 
-      {/* Results count */}
-      <p className="text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant -mt-4">
-        {filteredMembers.length} result{filteredMembers.length !== 1 ? 's' : ''}
-        {filter !== 'All' && ` in "${filter}"`}
-        {searchQuery && ` for "${searchQuery}"`}
-      </p>
-
       {/* Cards */}
-      {filteredMembers.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="text-center py-20">
-          <Search className="w-16 h-16 mx-auto mb-4 text-on-surface-variant opacity-20" />
-          <h3 className="font-headline text-xl font-bold uppercase tracking-widest text-on-surface-variant">No results found</h3>
-          <p className="text-sm text-on-surface-variant mt-2">Try different keywords or clear your filters.</p>
-          <button onClick={() => { setSearchQuery(''); setFilter('All'); }} className="mt-4 text-secondary text-sm font-bold hover:underline">
-            Clear filters
-          </button>
+          <Gamepad2 className="w-16 h-16 mx-auto mb-4 text-on-surface-variant opacity-20" />
+          <h3 className="font-headline text-xl font-bold uppercase tracking-widest text-on-surface-variant">No players found</h3>
+          <button onClick={() => { setSearch(''); setGameFilter('All Games'); setRegionFilter('All Regions'); setTypeFilter('all'); }} className="mt-4 text-secondary text-sm font-bold hover:underline">Clear filters</button>
         </div>
       ) : (
-        <motion.div layout className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <motion.div layout className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
           <AnimatePresence mode="popLayout">
-            {filteredMembers.map(m => (
-              <MemberCard
-                key={m.id}
-                member={m}
-                onConnect={handleConnect}
-                onMessage={setMessagingMember}
-              />
-            ))}
+            {filtered.map(p => <PlayerCard key={p.id} player={p} onConnect={handleConnect} onMessage={setMessaging} />)}
           </AnimatePresence>
         </motion.div>
       )}
 
       {/* Modals */}
       <AnimatePresence>
-        {messagingMember && (
-          <MessageModal member={messagingMember} onClose={() => setMessagingMember(null)} />
-        )}
-        {showCreateTeam && (
-          <CreateTeamModal
-            onClose={() => setShowCreateTeam(false)}
-            onSuccess={() => showToast('Team created successfully!')}
-          />
-        )}
-        {showStatusModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setShowStatusModal(false)} />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-surface-container-low border border-outline-variant/30 rounded-2xl shadow-2xl p-6 space-y-5"
-            >
-              <div className="flex justify-between items-center">
-                <h3 className="font-headline font-black text-xl uppercase italic text-on-surface">Update Status</h3>
-                <button onClick={() => setShowStatusModal(false)} className="p-2 hover:bg-surface-container-highest rounded-full transition-colors">
-                  <X className="w-5 h-5 text-on-surface-variant" />
-                </button>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-label font-bold uppercase tracking-widest text-outline">My Role</label>
-                <input
-                  value={statusForm.role}
-                  onChange={e => setStatusForm({ ...statusForm, role: e.target.value })}
-                  placeholder="e.g. Full-Stack Developer"
-                  className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-label font-bold uppercase tracking-widest text-outline">I'm Looking For</label>
-                <input
-                  value={statusForm.lookingFor}
-                  onChange={e => setStatusForm({ ...statusForm, lookingFor: e.target.value })}
-                  placeholder="e.g. Hackathon Team, Co-founder..."
-                  className="w-full bg-surface-container border border-outline-variant/30 rounded-xl p-3 text-on-surface text-sm focus:outline-none focus:border-primary transition-colors"
-                />
-              </div>
-              <button
-                onClick={() => { setShowStatusModal(false); showToast('Status updated!'); }}
-                className="w-full py-3 kinetic-gradient text-background rounded-xl font-headline font-bold uppercase tracking-wider text-sm active:scale-95 transition-all"
-              >
-                Save Status
-              </button>
-            </motion.div>
-          </div>
-        )}
+        {messaging && <MsgModal player={messaging} onClose={() => setMessaging(null)} />}
+        {showCreate && <CreateSquadModal onClose={() => setShowCreate(false)} onSuccess={() => showToast('Squad created! Looking for members...')} />}
       </AnimatePresence>
     </div>
   );
